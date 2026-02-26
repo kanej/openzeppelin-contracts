@@ -1,23 +1,23 @@
 import { network } from 'hardhat';
 import { shouldBehaveLikeERC721, shouldBehaveLikeERC721Metadata } from './ERC721.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
 const name = 'Non Fungible Token';
 const symbol = 'NFT';
 
-async function fixture() {
-  return {
-    accounts: await ethers.getSigners(),
-    token: await ethers.deployContract('$ERC721', [name, symbol]),
-  };
-}
-
 describe('ERC721', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  async function fixture() {
+    return {
+      accounts: await ethers.getSigners(),
+      token: await ethers.deployContract('$ERC721', [name, symbol]),
+    };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });

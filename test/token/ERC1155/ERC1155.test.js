@@ -1,24 +1,25 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { Typed } from 'ethers';
 import { RevertType } from '../../helpers/enums';
 import { zip } from '../../helpers/iterate';
 import { shouldBehaveLikeERC1155 } from './ERC1155.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
 const initialURI = 'https://token-cdn-domain/{id}.json';
 
-async function fixture() {
-  const [operator, holder, ...otherAccounts] = await ethers.getSigners();
-  const token = await ethers.deployContract('$ERC1155', [initialURI]);
-  return { token, operator, holder, otherAccounts };
-}
-
 describe('ERC1155', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  async function fixture() {
+    const [operator, holder, ...otherAccounts] = await ethers.getSigners();
+    const token = await ethers.deployContract('$ERC1155', [initialURI]);
+    return { token, operator, holder, otherAccounts };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });
@@ -210,7 +211,7 @@ describe('ERC1155', function () {
             [tokenId],
             [mintValue],
             '0x',
-            ethers.Typed.bool(true),
+            Typed.bool(true),
           ),
         ).to.emit(this.receiver, 'BatchReceived');
       });

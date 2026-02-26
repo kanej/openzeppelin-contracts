@@ -1,39 +1,40 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { id } from 'ethers';
 import { ImplementationLabel } from '../../helpers/storage';
 
-const connection = await network.connect();
-const {
-  ethers,
-  helpers: { storage },
-  networkHelpers: { loadFixture },
-} = connection;
-
-async function fixture() {
-  const implInitial = await ethers.deployContract('UUPSUpgradeableMock');
-  const implUpgradeOk = await ethers.deployContract('UUPSUpgradeableMock');
-  const implUpgradeUnsafe = await ethers.deployContract('UUPSUpgradeableUnsafeMock');
-  const implUpgradeNonUUPS = await ethers.deployContract('NonUpgradeableMock');
-  const implUnsupportedUUID = await ethers.deployContract('UUPSUnsupportedProxiableUUIDMock');
-  // Used for testing non ERC1967 compliant proxies (clones are proxies that don't use the ERC1967 implementation slot)
-  const cloneFactory = await ethers.deployContract('$Clones');
-
-  const instance = await ethers
-    .deployContract('ERC1967ProxyUnsafe', [implInitial, '0x'])
-    .then(proxy => implInitial.attach(proxy.target));
-
-  return {
-    implInitial,
-    implUpgradeOk,
-    implUpgradeUnsafe,
-    implUpgradeNonUUPS,
-    implUnsupportedUUID,
-    cloneFactory,
-    instance,
-  };
-}
-
 describe('UUPSUpgradeable', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    helpers: { storage },
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  async function fixture() {
+    const implInitial = await ethers.deployContract('UUPSUpgradeableMock');
+    const implUpgradeOk = await ethers.deployContract('UUPSUpgradeableMock');
+    const implUpgradeUnsafe = await ethers.deployContract('UUPSUpgradeableUnsafeMock');
+    const implUpgradeNonUUPS = await ethers.deployContract('NonUpgradeableMock');
+    const implUnsupportedUUID = await ethers.deployContract('UUPSUnsupportedProxiableUUIDMock');
+    // Used for testing non ERC1967 compliant proxies (clones are proxies that don't use the ERC1967 implementation slot)
+    const cloneFactory = await ethers.deployContract('$Clones');
+
+    const instance = await ethers
+      .deployContract('ERC1967ProxyUnsafe', [implInitial, '0x'])
+      .then(proxy => implInitial.attach(proxy.target));
+
+    return {
+      implInitial,
+      implUpgradeOk,
+      implUpgradeUnsafe,
+      implUpgradeNonUUPS,
+      implUnsupportedUUID,
+      cloneFactory,
+      instance,
+    };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });
@@ -95,7 +96,7 @@ describe('UUPSUpgradeable', function () {
   it('rejects upgrading to an unsupported UUID', async function () {
     await expect(this.instance.upgradeToAndCall(this.implUnsupportedUUID, '0x'))
       .to.be.revertedWithCustomError(this.instance, 'UUPSUnsupportedProxiableUUID')
-      .withArgs(ethers.id('invalid UUID'));
+      .withArgs(id('invalid UUID'));
   });
 
   it('upgrade to and unsafe upgradeable implementation', async function () {

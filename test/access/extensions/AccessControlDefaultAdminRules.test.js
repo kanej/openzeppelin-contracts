@@ -5,21 +5,21 @@ import {
   shouldBehaveLikeAccessControlDefaultAdminRules,
 } from '../AccessControl.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  helpers,
-  networkHelpers: { loadFixture },
-} = connection;
-
-async function fixture() {
-  const delay = helpers.time.duration.hours(10);
-  const [defaultAdmin, ...accounts] = await ethers.getSigners();
-  const mock = await ethers.deployContract('$AccessControlDefaultAdminRules', [delay, defaultAdmin]);
-  return { mock, defaultAdmin, delay, accounts };
-}
-
 describe('AccessControlDefaultAdminRules', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    helpers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  async function fixture() {
+    const delay = helpers.time.duration.hours(10);
+    const [defaultAdmin, ...accounts] = await ethers.getSigners();
+    const mock = await ethers.deployContract('$AccessControlDefaultAdminRules', [delay, defaultAdmin]);
+    return { mock, defaultAdmin, delay, accounts };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });

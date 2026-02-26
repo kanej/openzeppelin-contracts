@@ -1,21 +1,21 @@
 import { network } from 'hardhat';
 import { shouldBehaveLikeProxy } from '../Proxy.behaviour';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
-const fixture = async () => {
-  const [nonContractAddress] = await ethers.getSigners();
-
-  const implementation = await ethers.deployContract('DummyImplementation');
-
-  return { nonContractAddress, implementation };
-};
-
 describe('ERC1967Proxy', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  const fixture = async () => {
+    const [nonContractAddress] = await ethers.getSigners();
+
+    const implementation = await ethers.deployContract('DummyImplementation');
+
+    return { nonContractAddress, implementation };
+  };
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });

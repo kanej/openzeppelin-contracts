@@ -1,34 +1,35 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { MaxUint256 } from 'ethers';
 import { max, min } from '../../../helpers/math';
 import { shouldBehaveLikeERC20 } from '../ERC20.behavior';
-
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
 
 const name = 'My Token';
 const symbol = 'MTKN';
 const initialSupply = 100n;
 
-async function fixture() {
-  // this.accounts is used by shouldBehaveLikeERC20
-  const accounts = await ethers.getSigners();
-  const [holder, recipient, other] = accounts;
-
-  const token = await ethers.deployContract('$ERC20TemporaryApproval', [name, symbol]);
-  await token.$_mint(holder, initialSupply);
-
-  const spender = await ethers.deployContract('$Address');
-  const batch = await ethers.deployContract('BatchCaller');
-  const getter = await ethers.deployContract('ERC20GetterHelper');
-
-  return { accounts, holder, recipient, other, token, spender, batch, getter };
-}
-
 describe('ERC20TemporaryApproval', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  async function fixture() {
+    // this.accounts is used by shouldBehaveLikeERC20
+    const accounts = await ethers.getSigners();
+    const [holder, recipient, other] = accounts;
+
+    const token = await ethers.deployContract('$ERC20TemporaryApproval', [name, symbol]);
+    await token.$_mint(holder, initialSupply);
+
+    const spender = await ethers.deployContract('$Address');
+    const batch = await ethers.deployContract('BatchCaller');
+    const getter = await ethers.deployContract('ERC20GetterHelper');
+
+    return { accounts, holder, recipient, other, token, spender, batch, getter };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });
@@ -54,7 +55,7 @@ describe('ERC20TemporaryApproval', function () {
         temporaryAllowance: 42n,
         persistentAllowance: 17n,
       },
-      { description: 'support allowance overflow', temporaryAllowance: ethers.MaxUint256, persistentAllowance: 17n },
+      { description: 'support allowance overflow', temporaryAllowance: MaxUint256, persistentAllowance: 17n },
       { description: 'consuming temporary allowance alone', temporaryAllowance: 42n, amount: 2n },
       {
         description: 'fallback to persistent allowance if temporary allowance is not sufficient',
@@ -64,23 +65,23 @@ describe('ERC20TemporaryApproval', function () {
       },
       {
         description: 'do not reduce infinite temporary allowance #1',
-        temporaryAllowance: ethers.MaxUint256,
+        temporaryAllowance: MaxUint256,
         amount: 50n,
-        temporaryExpected: ethers.MaxUint256,
+        temporaryExpected: MaxUint256,
       },
       {
         description: 'do not reduce infinite temporary allowance #2',
         temporaryAllowance: 17n,
-        persistentAllowance: ethers.MaxUint256,
+        persistentAllowance: MaxUint256,
         amount: 50n,
-        temporaryExpected: ethers.MaxUint256,
-        persistentExpected: ethers.MaxUint256,
+        temporaryExpected: MaxUint256,
+        persistentExpected: MaxUint256,
       },
     ]) {
       persistentAllowance ??= 0n;
       temporaryAllowance ??= 0n;
       amount ??= 0n;
-      temporaryExpected ??= min(persistentAllowance + temporaryAllowance - amount, ethers.MaxUint256);
+      temporaryExpected ??= min(persistentAllowance + temporaryAllowance - amount, MaxUint256);
       persistentExpected ??= persistentAllowance - max(amount - temporaryAllowance, 0n);
 
       it(description, async function () {
