@@ -65,3 +65,6 @@ contracts-exposed
 .last_confs
 certora_*
 .zip-output-url.txt
+
+# TEMP addition for claude
+MIGRATION_PLAN.md
