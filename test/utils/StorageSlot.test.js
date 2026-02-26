@@ -1,14 +1,10 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { id } from 'ethers';
 import { generators } from '../helpers/random';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-const slot = ethers.id('some.storage.slot');
-const otherSlot = ethers.id('some.other.storage.slot');
+const slot = id('some.storage.slot');
+const otherSlot = id('some.other.storage.slot');
 
 const TYPES = [
   { name: 'Boolean', type: 'bool', value: true, isValueType: true, zero: false },
@@ -20,11 +16,16 @@ const TYPES = [
   { name: 'String', type: 'string', value: 'lorem ipsum', isValueType: false, zero: '' },
 ];
 
-async function fixture() {
-  return { mock: await ethers.deployContract('StorageSlotMock') };
-}
-
 describe('StorageSlot', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('StorageSlotMock') };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
