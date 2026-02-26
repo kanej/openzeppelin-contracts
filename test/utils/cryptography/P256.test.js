@@ -1,36 +1,44 @@
 import fs from 'fs';
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import {
+  getBytes,
+  hexlify,
+  randomBytes,
+  sha256,
+  stripZerosLeft,
+  toBigInt,
+  toBeHex,
+  zeroPadValue,
+  ZeroHash,
+} from 'ethers';
 import { p256 } from '@noble/curves/nist.js';
-
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
 
 const N = 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551n;
 
-const prepareSignature = (
-  privateKey = p256.utils.randomSecretKey(),
-  messageHash = ethers.hexlify(ethers.randomBytes(0x20)),
-) => {
+const prepareSignature = (privateKey = p256.utils.randomSecretKey(), messageHash = hexlify(randomBytes(0x20))) => {
   const publicKey = [
     p256.getPublicKey(privateKey, false).slice(0x01, 0x21),
     p256.getPublicKey(privateKey, false).slice(0x21, 0x41),
-  ].map(ethers.hexlify);
+  ].map(hexlify);
 
-  const rawSignature = p256.sign(ethers.getBytes(messageHash), privateKey, { prehash: false, format: 'recovered' });
-  const signature = [ethers.hexlify(rawSignature.slice(0x01, 0x21)), ethers.hexlify(rawSignature.slice(0x21, 0x41))];
+  const rawSignature = p256.sign(getBytes(messageHash), privateKey, { prehash: false, format: 'recovered' });
+  const signature = [hexlify(rawSignature.slice(0x01, 0x21)), hexlify(rawSignature.slice(0x21, 0x41))];
   const recovery = rawSignature[0];
 
   return { privateKey, publicKey, signature, recovery, messageHash };
 };
 
-async function fixture() {
-  return { mock: await ethers.deployContract('$P256') };
-}
-
 describe('P256', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$P256') };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -50,7 +58,7 @@ describe('P256', function () {
 
     it('verify improper signature', async function () {
       const signature = this.signature;
-      this.signature[0] = ethers.toBeHex(N, 0x20); // r = N
+      this.signature[0] = toBeHex(N, 0x20); // r = N
       await expect(this.mock.$verify(this.messageHash, ...signature, ...this.publicKey)).to.eventually.be.false;
       await expect(this.mock.$verifySolidity(this.messageHash, ...signature, ...this.publicKey)).to.eventually.be.false;
       await expect(this.mock.$verifyNative(this.messageHash, ...signature, ...this.publicKey)).to.eventually.be.false;
@@ -64,17 +72,17 @@ describe('P256', function () {
 
     it('recovers (0,0) for invalid recovery bit', async function () {
       await expect(this.mock.$recovery(this.messageHash, 2, ...this.signature)).to.eventually.deep.equal([
-        ethers.ZeroHash,
-        ethers.ZeroHash,
+        ZeroHash,
+        ZeroHash,
       ]);
     });
 
     it('recovers (0,0) for improper signature', async function () {
       const signature = this.signature;
-      this.signature[0] = ethers.toBeHex(N, 0x20); // r = N
+      this.signature[0] = toBeHex(N, 0x20); // r = N
       await expect(this.mock.$recovery(this.messageHash, this.recovery, ...signature)).to.eventually.deep.equal([
-        ethers.ZeroHash,
-        ethers.ZeroHash,
+        ZeroHash,
+        ZeroHash,
       ]);
     });
 
@@ -121,7 +129,7 @@ describe('P256', function () {
 
     it('reject signature with invalid message hash', async function () {
       // random message hash
-      this.messageHash = ethers.hexlify(ethers.randomBytes(32));
+      this.messageHash = hexlify(randomBytes(32));
 
       await expect(this.mock.$verify(this.messageHash, ...this.signature, ...this.publicKey)).to.eventually.be.false;
       await expect(this.mock.$verifySolidity(this.messageHash, ...this.signature, ...this.publicKey)).to.eventually.be
@@ -151,10 +159,10 @@ describe('P256', function () {
 
     for (const { key, tests } of testGroups) {
       // parse public key
-      let [x, y] = [key.wx, key.wy].map(v => ethers.stripZerosLeft('0x' + v, 32));
+      let [x, y] = [key.wx, key.wy].map(v => stripZerosLeft('0x' + v, 32));
       if (x.length > 66 || y.length > 66) continue;
-      x = ethers.zeroPadValue(x, 32);
-      y = ethers.zeroPadValue(y, 32);
+      x = zeroPadValue(x, 32);
+      y = zeroPadValue(y, 32);
 
       // run all tests for this key
       for (const { tcId, comment, msg, sig, result } of tests) {
@@ -165,14 +173,14 @@ describe('P256', function () {
           // split signature, and reduce modulo N
           let [r, s] = Array(2)
             .fill()
-            .map((_, i) => ethers.toBigInt('0x' + sig.substring(64 * i, 64 * (i + 1))));
+            .map((_, i) => toBigInt('0x' + sig.substring(64 * i, 64 * (i + 1))));
           // move s to lower part of the curve if needed
           if (s <= N && s > N / 2n) s = N - s;
           // prepare signature
-          r = ethers.toBeHex(r, 32);
-          s = ethers.toBeHex(s, 32);
+          r = toBeHex(r, 32);
+          s = toBeHex(s, 32);
           // hash
-          const messageHash = ethers.sha256('0x' + msg);
+          const messageHash = sha256('0x' + msg);
 
           // check verify
           await expect(this.mock.$verify(messageHash, r, s, x, y)).to.eventually.equal(result == 'valid');

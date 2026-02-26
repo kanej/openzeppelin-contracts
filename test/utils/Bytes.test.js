@@ -1,86 +1,79 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { toBeHex, toUtf8Bytes, hexlify, concat, MaxUint256, Typed } from 'ethers';
 import { MAX_UINT128, MAX_UINT64, MAX_UINT32, MAX_UINT16 } from '../helpers/constants';
 import { generators } from '../helpers/random';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 // Helper functions for fixed bytes types
-const bytes32 = value => ethers.toBeHex(value, 32);
-const bytes16 = value => ethers.toBeHex(value, 16);
-const bytes8 = value => ethers.toBeHex(value, 8);
-const bytes4 = value => ethers.toBeHex(value, 4);
-const bytes2 = value => ethers.toBeHex(value, 2);
+const bytes32 = value => toBeHex(value, 32);
+const bytes16 = value => toBeHex(value, 16);
+const bytes8 = value => toBeHex(value, 8);
+const bytes4 = value => toBeHex(value, 4);
+const bytes2 = value => toBeHex(value, 2);
 
-async function fixture() {
-  return { mock: await ethers.deployContract('$Bytes') };
-}
-
-const lorem = ethers.toUtf8Bytes(
+const lorem = toUtf8Bytes(
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
 );
 const present = lorem.at(1);
 const absent = 255;
 
 describe('Bytes', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$Bytes') };
+  }
+
   before(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
 
   describe('indexOf', function () {
     it('first', async function () {
-      await expect(this.mock.$indexOf(lorem, ethers.toBeHex(present))).to.eventually.equal(lorem.indexOf(present));
+      await expect(this.mock.$indexOf(lorem, toBeHex(present))).to.eventually.equal(lorem.indexOf(present));
     });
 
     it('from index', async function () {
       for (const start in Array(lorem.length + 10).fill()) {
         const index = lorem.indexOf(present, start);
-        const result = index === -1 ? ethers.MaxUint256 : index;
-        await expect(
-          this.mock.$indexOf(lorem, ethers.toBeHex(present), ethers.Typed.uint256(start)),
-        ).to.eventually.equal(result);
+        const result = index === -1 ? MaxUint256 : index;
+        await expect(this.mock.$indexOf(lorem, toBeHex(present), Typed.uint256(start))).to.eventually.equal(result);
       }
     });
 
     it('absent', async function () {
-      await expect(this.mock.$indexOf(lorem, ethers.toBeHex(absent))).to.eventually.equal(ethers.MaxUint256);
+      await expect(this.mock.$indexOf(lorem, toBeHex(absent))).to.eventually.equal(MaxUint256);
     });
 
     it('empty buffer', async function () {
-      await expect(this.mock.$indexOf('0x', '0x00')).to.eventually.equal(ethers.MaxUint256);
-      await expect(this.mock.$indexOf('0x', '0x00', ethers.Typed.uint256(17))).to.eventually.equal(ethers.MaxUint256);
+      await expect(this.mock.$indexOf('0x', '0x00')).to.eventually.equal(MaxUint256);
+      await expect(this.mock.$indexOf('0x', '0x00', Typed.uint256(17))).to.eventually.equal(MaxUint256);
     });
   });
 
   describe('lastIndexOf', function () {
     it('first', async function () {
-      await expect(this.mock.$lastIndexOf(lorem, ethers.toBeHex(present))).to.eventually.equal(
-        lorem.lastIndexOf(present),
-      );
+      await expect(this.mock.$lastIndexOf(lorem, toBeHex(present))).to.eventually.equal(lorem.lastIndexOf(present));
     });
 
     it('from index', async function () {
       for (const start in Array(lorem.length + 10).fill()) {
         const index = lorem.lastIndexOf(present, start);
-        const result = index === -1 ? ethers.MaxUint256 : index;
-        await expect(
-          this.mock.$lastIndexOf(lorem, ethers.toBeHex(present), ethers.Typed.uint256(start)),
-        ).to.eventually.equal(result);
+        const result = index === -1 ? MaxUint256 : index;
+        await expect(this.mock.$lastIndexOf(lorem, toBeHex(present), Typed.uint256(start))).to.eventually.equal(result);
       }
     });
 
     it('absent', async function () {
-      await expect(this.mock.$lastIndexOf(lorem, ethers.toBeHex(absent))).to.eventually.equal(ethers.MaxUint256);
+      await expect(this.mock.$lastIndexOf(lorem, toBeHex(absent))).to.eventually.equal(MaxUint256);
     });
 
     it('empty buffer', async function () {
-      await expect(this.mock.$lastIndexOf('0x', '0x00')).to.eventually.equal(ethers.MaxUint256);
-      await expect(this.mock.$lastIndexOf('0x', '0x00', ethers.Typed.uint256(17))).to.eventually.equal(
-        ethers.MaxUint256,
-      );
+      await expect(this.mock.$lastIndexOf('0x', '0x00')).to.eventually.equal(MaxUint256);
+      await expect(this.mock.$lastIndexOf('0x', '0x00', Typed.uint256(17))).to.eventually.equal(MaxUint256);
     });
   });
 
@@ -92,7 +85,7 @@ describe('Bytes', function () {
         'start out of bound': 1000,
       })) {
         it(descr, async function () {
-          const result = ethers.hexlify(lorem.slice(start));
+          const result = hexlify(lorem.slice(start));
           await expect(this.mock.$slice(lorem, start)).to.eventually.equal(result);
           await expect(this.mock.$splice(lorem, start)).to.eventually.equal(result);
         });
@@ -108,9 +101,9 @@ describe('Bytes', function () {
         'start > end': [42, 17],
       })) {
         it(descr, async function () {
-          const result = ethers.hexlify(lorem.slice(start, end));
-          await expect(this.mock.$slice(lorem, start, ethers.Typed.uint256(end))).to.eventually.equal(result);
-          await expect(this.mock.$splice(lorem, start, ethers.Typed.uint256(end))).to.eventually.equal(result);
+          const result = hexlify(lorem.slice(start, end));
+          await expect(this.mock.$slice(lorem, start, Typed.uint256(end))).to.eventually.equal(result);
+          await expect(this.mock.$splice(lorem, start, Typed.uint256(end))).to.eventually.equal(result);
         });
       }
     });
@@ -128,12 +121,12 @@ describe('Bytes', function () {
 
     it('multiple (non-empty) items', async function () {
       const items = Array.from({ length: 17 }, generators.bytes);
-      await expect(this.mock.$concat(items)).to.eventually.equal(ethers.concat(items));
+      await expect(this.mock.$concat(items)).to.eventually.equal(concat(items));
     });
 
     it('multiple (empty) items', async function () {
       const items = Array.from({ length: 17 }).fill(generators.bytes.zero);
-      await expect(this.mock.$concat(items)).to.eventually.equal(ethers.concat(items));
+      await expect(this.mock.$concat(items)).to.eventually.equal(concat(items));
     });
 
     it('multiple (variable length) items', async function () {
@@ -153,7 +146,7 @@ describe('Bytes', function () {
         generators.bytes.zero,
       ];
 
-      await expect(this.mock.$concat(items)).to.eventually.equal(ethers.concat(items));
+      await expect(this.mock.$concat(items)).to.eventually.equal(concat(items));
     });
   });
 
@@ -235,7 +228,7 @@ describe('Bytes', function () {
     });
 
     it('different content', async function () {
-      const different = ethers.toUtf8Bytes('Different content');
+      const different = toUtf8Bytes('Different content');
       await expect(this.mock.$equal(lorem, different)).to.eventually.be.false;
     });
 
@@ -260,9 +253,7 @@ describe('Bytes', function () {
     describe('reverseBytes32', function () {
       it('reverses bytes correctly', async function () {
         await expect(this.mock.$reverseBytes32(bytes32(0))).to.eventually.equal(bytes32(0));
-        await expect(this.mock.$reverseBytes32(bytes32(ethers.MaxUint256))).to.eventually.equal(
-          bytes32(ethers.MaxUint256),
-        );
+        await expect(this.mock.$reverseBytes32(bytes32(MaxUint256))).to.eventually.equal(bytes32(MaxUint256));
 
         // Test complex pattern that clearly shows byte reversal
         await expect(
@@ -271,7 +262,7 @@ describe('Bytes', function () {
       });
 
       it('double reverse returns original', async function () {
-        const values = [0n, 1n, 0x12345678n, ethers.MaxUint256];
+        const values = [0n, 1n, 0x12345678n, MaxUint256];
         for (const value of values) {
           const reversed = await this.mock.$reverseBytes32(bytes32(value));
           await expect(this.mock.$reverseBytes32(reversed)).to.eventually.equal(bytes32(value));

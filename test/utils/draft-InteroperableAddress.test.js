@@ -1,28 +1,29 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { Typed, hexlify, ZeroAddress } from 'ethers';
 import { addressCoder, nameCoder } from 'interoperable-addresses';
 import { CAIP350, chainTypeCoder } from 'interoperable-addresses/dist/CAIP350';
 import { generators } from '../helpers/random';
 
-const {
-  ethers,
-  helpers: { chain },
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  return { mock: await ethers.deployContract('$InteroperableAddress') };
-}
-
 describe('ERC7390', function () {
+  const {
+    ethers,
+    helpers: { chain },
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$InteroperableAddress') };
+  }
+
   before(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
 
   it('formatEvmV1 address on the local chain', async function () {
-    await expect(
-      this.mock.$formatEvmV1(ethers.Typed.uint256(chain.reference), ethers.Typed.address(this.mock)),
-    ).to.eventually.equal(chain.toErc7930(this.mock));
+    await expect(this.mock.$formatEvmV1(Typed.uint256(chain.reference), Typed.address(this.mock))).to.eventually.equal(
+      chain.toErc7930(this.mock),
+    );
   });
 
   it('formatV1 fails if both reference and address are empty', async function () {
@@ -67,7 +68,7 @@ describe('ERC7390', function () {
           chainTypeCoder.decode(chainType),
           CAIP350[chainType].reference.decode(reference),
           CAIP350[chainType].address.decode(address),
-        ].map(ethers.hexlify);
+        ].map(hexlify);
 
         await expect(this.mock.$parseV1(binary)).to.eventually.deep.equal(expected);
         await expect(this.mock.$parseV1Calldata(binary)).to.eventually.deep.equal(expected);
@@ -78,35 +79,31 @@ describe('ERC7390', function () {
         if (chainType == 'eip155') {
           await expect(this.mock.$parseEvmV1(binary)).to.eventually.deep.equal([
             reference ?? 0n,
-            address ?? ethers.ZeroAddress,
+            address ?? ZeroAddress,
           ]);
           await expect(this.mock.$parseEvmV1Calldata(binary)).to.eventually.deep.equal([
             reference ?? 0n,
-            address ?? ethers.ZeroAddress,
+            address ?? ZeroAddress,
           ]);
           await expect(this.mock.$tryParseEvmV1(binary)).to.eventually.deep.equal([
             true,
             reference ?? 0n,
-            address ?? ethers.ZeroAddress,
+            address ?? ZeroAddress,
           ]);
           await expect(this.mock.$tryParseEvmV1Calldata(binary)).to.eventually.deep.equal([
             true,
             reference ?? 0n,
-            address ?? ethers.ZeroAddress,
+            address ?? ZeroAddress,
           ]);
 
           if (!address) {
-            await expect(this.mock.$formatEvmV1(ethers.Typed.uint256(reference))).to.eventually.equal(
-              binary.toLowerCase(),
-            );
+            await expect(this.mock.$formatEvmV1(Typed.uint256(reference))).to.eventually.equal(binary.toLowerCase());
           } else if (!reference) {
-            await expect(this.mock.$formatEvmV1(ethers.Typed.address(address))).to.eventually.equal(
+            await expect(this.mock.$formatEvmV1(Typed.address(address))).to.eventually.equal(binary.toLowerCase());
+          } else {
+            await expect(this.mock.$formatEvmV1(Typed.uint256(reference), Typed.address(address))).to.eventually.equal(
               binary.toLowerCase(),
             );
-          } else {
-            await expect(
-              this.mock.$formatEvmV1(ethers.Typed.uint256(reference), ethers.Typed.address(address)),
-            ).to.eventually.equal(binary.toLowerCase());
           }
         }
       });
@@ -141,12 +138,8 @@ describe('ERC7390', function () {
           .withArgs(binary);
         await expect(this.mock.$tryParseV1(binary)).to.eventually.deep.equal([false, '0x0000', '0x', '0x']);
         await expect(this.mock.$tryParseV1Calldata(binary)).to.eventually.deep.equal([false, '0x0000', '0x', '0x']);
-        await expect(this.mock.$tryParseEvmV1(binary)).to.eventually.deep.equal([false, 0n, ethers.ZeroAddress]);
-        await expect(this.mock.$tryParseEvmV1Calldata(binary)).to.eventually.deep.equal([
-          false,
-          0n,
-          ethers.ZeroAddress,
-        ]);
+        await expect(this.mock.$tryParseEvmV1(binary)).to.eventually.deep.equal([false, 0n, ZeroAddress]);
+        await expect(this.mock.$tryParseEvmV1Calldata(binary)).to.eventually.deep.equal([false, 0n, ZeroAddress]);
       });
     }
 
@@ -162,12 +155,8 @@ describe('ERC7390', function () {
         await expect(this.mock.$parseEvmV1Calldata(binary))
           .to.be.revertedWithCustomError(this.mock, 'InteroperableAddressParsingError')
           .withArgs(binary);
-        await expect(this.mock.$tryParseEvmV1(binary)).to.eventually.deep.equal([false, 0n, ethers.ZeroAddress]);
-        await expect(this.mock.$tryParseEvmV1Calldata(binary)).to.eventually.deep.equal([
-          false,
-          0n,
-          ethers.ZeroAddress,
-        ]);
+        await expect(this.mock.$tryParseEvmV1(binary)).to.eventually.deep.equal([false, 0n, ZeroAddress]);
+        await expect(this.mock.$tryParseEvmV1Calldata(binary)).to.eventually.deep.equal([false, 0n, ZeroAddress]);
       });
     }
   });

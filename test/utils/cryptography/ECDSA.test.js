@@ -1,23 +1,24 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { id, Signature, toBigInt, ZeroHash } from 'ethers';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-const TEST_MESSAGE = ethers.id('OpenZeppelin');
-const WRONG_MESSAGE = ethers.id('Nope');
+const TEST_MESSAGE = id('OpenZeppelin');
+const WRONG_MESSAGE = id('Nope');
 const NON_HASH_MESSAGE = '0xabcd';
 
-async function fixture() {
-  const [signer] = await ethers.getSigners();
-  const mock = await ethers.deployContract('$ECDSA');
-  return { signer, mock };
-}
-
 describe('ECDSA', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [signer] = await ethers.getSigners();
+    const mock = await ethers.deployContract('$ECDSA');
+    return { signer, mock };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -107,7 +108,7 @@ describe('ECDSA', function () {
         await expect(this.mock.$recover(TEST_MESSAGE, signature)).to.eventually.equal(signer);
         await expect(this.mock.$recoverCalldata(TEST_MESSAGE, signature)).to.eventually.equal(signer);
 
-        const { r, s, yParityAndS: vs } = ethers.Signature.from(signature);
+        const { r, s, yParityAndS: vs } = Signature.from(signature);
         await expect(
           this.mock.getFunction('$recover(bytes32,uint8,bytes32,bytes32)')(TEST_MESSAGE, v, r, s),
         ).to.eventually.equal(signer);
@@ -123,7 +124,7 @@ describe('ECDSA', function () {
         await expect(this.mock.$recover(TEST_MESSAGE, signature)).to.eventually.not.equal(signer);
         await expect(this.mock.$recoverCalldata(TEST_MESSAGE, signature)).to.eventually.not.equal(signer);
 
-        const { r, s, yParityAndS: vs } = ethers.Signature.from(signature);
+        const { r, s, yParityAndS: vs } = Signature.from(signature);
         expect(
           await this.mock.getFunction('$recover(bytes32,uint8,bytes32,bytes32)')(TEST_MESSAGE, v, r, s),
         ).to.not.equal(signer);
@@ -145,7 +146,7 @@ describe('ECDSA', function () {
             'ECDSAInvalidSignature',
           );
 
-          const { r, s } = ethers.Signature.from(signature);
+          const { r, s } = Signature.from(signature);
           await expect(
             this.mock.getFunction('$recover(bytes32,uint8,bytes32,bytes32)')(TEST_MESSAGE, v, r, s),
           ).to.be.revertedWithCustomError(this.mock, 'ECDSAInvalidSignature');
@@ -156,7 +157,7 @@ describe('ECDSA', function () {
         const v = '0x1b'; // 27 = 1b.
         const signature = ethers.concat([signatureWithoutV, v]);
 
-        const { compactSerialized } = ethers.Signature.from(signature);
+        const { compactSerialized } = Signature.from(signature);
         await expect(this.mock.$recover(TEST_MESSAGE, compactSerialized))
           .to.be.revertedWithCustomError(this.mock, 'ECDSAInvalidSignatureLength')
           .withArgs(64);
@@ -178,7 +179,7 @@ describe('ECDSA', function () {
         await expect(this.mock.$recover(TEST_MESSAGE, signature)).to.eventually.equal(signer);
         await expect(this.mock.$recoverCalldata(TEST_MESSAGE, signature)).to.eventually.equal(signer);
 
-        const { r, s, yParityAndS: vs } = ethers.Signature.from(signature);
+        const { r, s, yParityAndS: vs } = Signature.from(signature);
         await expect(
           this.mock.getFunction('$recover(bytes32,uint8,bytes32,bytes32)')(TEST_MESSAGE, v, r, s),
         ).to.eventually.equal(signer);
@@ -194,7 +195,7 @@ describe('ECDSA', function () {
         await expect(this.mock.$recover(TEST_MESSAGE, signature)).to.not.equal(signer);
         await expect(this.mock.$recoverCalldata(TEST_MESSAGE, signature)).to.not.equal(signer);
 
-        const { r, s, yParityAndS: vs } = ethers.Signature.from(signature);
+        const { r, s, yParityAndS: vs } = Signature.from(signature);
         expect(
           await this.mock.getFunction('$recover(bytes32,uint8,bytes32,bytes32)')(TEST_MESSAGE, v, r, s),
         ).to.not.equal(signer);
@@ -216,7 +217,7 @@ describe('ECDSA', function () {
             'ECDSAInvalidSignature',
           );
 
-          const { r, s } = ethers.Signature.from(signature);
+          const { r, s } = Signature.from(signature);
           await expect(
             this.mock.getFunction('$recover(bytes32,uint8,bytes32,bytes32)')(TEST_MESSAGE, v, r, s),
           ).to.be.revertedWithCustomError(this.mock, 'ECDSAInvalidSignature');
@@ -227,7 +228,7 @@ describe('ECDSA', function () {
         const v = '0x1b'; // 28 = 1b.
         const signature = ethers.concat([signatureWithoutV, v]);
 
-        const { compactSerialized } = ethers.Signature.from(signature);
+        const { compactSerialized } = Signature.from(signature);
         await expect(this.mock.$recover(TEST_MESSAGE, compactSerialized))
           .to.be.revertedWithCustomError(this.mock, 'ECDSAInvalidSignatureLength')
           .withArgs(64);
@@ -249,7 +250,7 @@ describe('ECDSA', function () {
 
       // In ethers v6.15.0+, the library no longer throws 'non-canonical s' error for high-s signatures. This
       // assertion verifies we are in fact dealing with a high-s value that the ECDSA library should reject.
-      expect(ethers.toBigInt(s)).to.be.gt(secp256k1.Point.Fn.ORDER / 2n);
+      expect(toBigInt(s)).to.be.gt(secp256k1.Point.Fn.ORDER / 2n);
 
       await expect(this.mock.$recover(message, highSSignature))
         .to.be.revertedWithCustomError(this.mock, 'ECDSAInvalidSignatureS')
@@ -266,7 +267,7 @@ describe('ECDSA', function () {
   describe('parse signature', function () {
     it('65 and 64 bytes signatures', async function () {
       // Create the signature
-      const signature = await this.signer.signMessage(TEST_MESSAGE).then(ethers.Signature.from);
+      const signature = await this.signer.signMessage(TEST_MESSAGE).then(Signature.from);
 
       await expect(this.mock.$parse(signature.serialized)).to.eventually.deep.equal([
         signature.v,
@@ -293,13 +294,9 @@ describe('ECDSA', function () {
     it('with short signature', async function () {
       const signature = '0x1234';
 
-      await expect(this.mock.$parse(signature)).to.eventually.deep.equal([0n, ethers.ZeroHash, ethers.ZeroHash]);
+      await expect(this.mock.$parse(signature)).to.eventually.deep.equal([0n, ZeroHash, ZeroHash]);
 
-      await expect(this.mock.$parseCalldata(signature)).to.eventually.deep.equal([
-        0n,
-        ethers.ZeroHash,
-        ethers.ZeroHash,
-      ]);
+      await expect(this.mock.$parseCalldata(signature)).to.eventually.deep.equal([0n, ZeroHash, ZeroHash]);
     });
 
     it('with long signature', async function () {
@@ -314,13 +311,9 @@ describe('ECDSA', function () {
         .to.be.revertedWithCustomError(this.mock, 'ECDSAInvalidSignatureLength')
         .withArgs(85);
 
-      await expect(this.mock.$parse(signature)).to.eventually.deep.equal([0n, ethers.ZeroHash, ethers.ZeroHash]);
+      await expect(this.mock.$parse(signature)).to.eventually.deep.equal([0n, ZeroHash, ZeroHash]);
 
-      await expect(this.mock.$parseCalldata(signature)).to.eventually.deep.equal([
-        0n,
-        ethers.ZeroHash,
-        ethers.ZeroHash,
-      ]);
+      await expect(this.mock.$parseCalldata(signature)).to.eventually.deep.equal([0n, ZeroHash, ZeroHash]);
     });
   });
 });

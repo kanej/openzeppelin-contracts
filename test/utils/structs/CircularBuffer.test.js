@@ -1,22 +1,22 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { ZeroHash } from 'ethers';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 import { generators } from '../../helpers/random';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const LENGTH = 4;
 
-async function fixture() {
-  const mock = await ethers.deployContract('$CircularBuffer');
-  await mock.$setup(0, LENGTH);
-  return { mock };
-}
-
 describe('CircularBuffer', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const mock = await ethers.deployContract('$CircularBuffer');
+    await mock.$setup(0, LENGTH);
+    return { mock };
+  }
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -28,7 +28,7 @@ describe('CircularBuffer', function () {
   it('starts empty', async function () {
     expect(await this.mock.$count(0)).to.equal(0n);
     expect(await this.mock.$length(0)).to.equal(LENGTH);
-    expect(await this.mock.$includes(0, ethers.ZeroHash)).to.be.false;
+    expect(await this.mock.$includes(0, ZeroHash)).to.be.false;
     await expect(this.mock.$last(0, 0)).to.be.revertedWithPanic(PANIC_CODES.ARRAY_ACCESS_OUT_OF_BOUNDS);
   });
 
@@ -63,7 +63,7 @@ describe('CircularBuffer', function () {
       for (const v of dropped) {
         expect(await this.mock.$includes(0, v)).to.be.false;
       }
-      expect(await this.mock.$includes(0, ethers.ZeroHash)).to.be.false;
+      expect(await this.mock.$includes(0, ZeroHash)).to.be.false;
     }
   });
 

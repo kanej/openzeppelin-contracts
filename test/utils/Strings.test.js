@@ -1,17 +1,28 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import {
+  MaxUint256,
+  MaxInt256,
+  MinInt256,
+  toBeHex,
+  hexlify,
+  randomBytes,
+  getAddress,
+  isAddress,
+  ZeroAddress,
+} from 'ethers';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  return { mock: await ethers.deployContract('$Strings') };
-}
-
 describe('Strings', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$Strings') };
+  }
+
   before(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -40,7 +51,7 @@ describe('Strings', function () {
 
     describe('uint256', function () {
       it('converts MAX_UINT256', async function () {
-        const value = ethers.MaxUint256;
+        const value = MaxUint256;
         expect(await this.mock.$toString(value)).to.equal(value.toString(10));
         expect(await this.mock.$parseUint(value.toString(10))).to.equal(value);
         expect(await this.mock.$tryParseUint(value.toString(10))).to.deep.equal([true, value]);
@@ -57,14 +68,14 @@ describe('Strings', function () {
 
     describe('int256', function () {
       it('converts MAX_INT256', async function () {
-        const value = ethers.MaxInt256;
+        const value = MaxInt256;
         expect(await this.mock.$toStringSigned(value)).to.equal(value.toString(10));
         expect(await this.mock.$parseInt(value.toString(10))).to.equal(value);
         expect(await this.mock.$tryParseInt(value.toString(10))).to.deep.equal([true, value]);
       });
 
       it('converts MIN_INT256', async function () {
-        const value = ethers.MinInt256;
+        const value = MinInt256;
         expect(await this.mock.$toStringSigned(value)).to.equal(value.toString(10));
         expect(await this.mock.$parseInt(value.toString(10))).to.equal(value);
         expect(await this.mock.$tryParseInt(value.toString(10))).to.deep.equal([true, value]);
@@ -90,7 +101,7 @@ describe('Strings', function () {
   describe('toHexString', function () {
     it('converts 0', async function () {
       const value = 0n;
-      const string = ethers.toBeHex(value); // 0x00
+      const string = toBeHex(value); // 0x00
 
       expect(await this.mock.getFunction('$toHexString(uint256)')(value)).to.equal(string);
       expect(await this.mock.$parseHexUint(string)).to.equal(value);
@@ -101,7 +112,7 @@ describe('Strings', function () {
 
     it('converts a positive number', async function () {
       const value = 0x4132n;
-      const string = ethers.toBeHex(value);
+      const string = toBeHex(value);
 
       expect(await this.mock.getFunction('$toHexString(uint256)')(value)).to.equal(string);
       expect(await this.mock.$parseHexUint(string)).to.equal(value);
@@ -111,8 +122,8 @@ describe('Strings', function () {
     });
 
     it('converts MAX_UINT256', async function () {
-      const value = ethers.MaxUint256;
-      const string = ethers.toBeHex(value);
+      const value = MaxUint256;
+      const string = toBeHex(value);
 
       expect(await this.mock.getFunction('$toHexString(uint256)')(value)).to.equal(string);
       expect(await this.mock.$parseHexUint(string)).to.equal(value);
@@ -137,8 +148,8 @@ describe('Strings', function () {
     });
 
     it('converts MAX_UINT256', async function () {
-      expect(await this.mock.getFunction('$toHexString(uint256,uint256)')(ethers.MaxUint256, 32n)).to.equal(
-        ethers.toBeHex(ethers.MaxUint256),
+      expect(await this.mock.getFunction('$toHexString(uint256,uint256)')(MaxUint256, 32n)).to.equal(
+        toBeHex(MaxUint256),
       );
     });
   });
@@ -174,7 +185,7 @@ describe('Strings', function () {
     describe('toChecksumHexString', function () {
       for (const addr of addresses) {
         it(`converts ${addr}`, async function () {
-          expect(await this.mock.$toChecksumHexString(addr)).to.equal(ethers.getAddress(addr));
+          expect(await this.mock.$toChecksumHexString(addr)).to.equal(getAddress(addr));
         });
       }
     });
@@ -182,8 +193,8 @@ describe('Strings', function () {
     describe('parseAddress', function () {
       for (const addr of addresses) {
         it(`converts ${addr}`, async function () {
-          expect(await this.mock.$parseAddress(addr)).to.equal(ethers.getAddress(addr));
-          expect(await this.mock.$tryParseAddress(addr)).to.deep.equal([true, ethers.getAddress(addr)]);
+          expect(await this.mock.$parseAddress(addr)).to.equal(getAddress(addr));
+          expect(await this.mock.$tryParseAddress(addr)).to.deep.equal([true, getAddress(addr)]);
         });
       }
     });
@@ -192,7 +203,7 @@ describe('Strings', function () {
   describe('bytes', function () {
     describe('toHexString', function () {
       for (const length of [0, 17, 20, 32, 42, 64, 512]) {
-        const input = ethers.hexlify(ethers.randomBytes(length));
+        const input = hexlify(randomBytes(length));
         it(`hexlify buffer of length ${length}`, async function () {
           expect(await this.mock.getFunction('$toHexString(bytes)')(input)).to.equal(input);
         });
@@ -233,10 +244,10 @@ describe('Strings', function () {
 
   describe('Edge cases: invalid parsing', function () {
     it('parseUint overflow', async function () {
-      await expect(this.mock.$parseUint((ethers.MaxUint256 + 1n).toString(10))).to.be.revertedWithPanic(
+      await expect(this.mock.$parseUint((MaxUint256 + 1n).toString(10))).to.be.revertedWithPanic(
         PANIC_CODES.ARITHMETIC_OVERFLOW,
       );
-      await expect(this.mock.$tryParseUint((ethers.MaxUint256 + 1n).toString(10))).to.be.revertedWithPanic(
+      await expect(this.mock.$tryParseUint((MaxUint256 + 1n).toString(10))).to.be.revertedWithPanic(
         PANIC_CODES.ARITHMETIC_OVERFLOW,
       );
     });
@@ -260,28 +271,28 @@ describe('Strings', function () {
     });
 
     it('parseInt overflow', async function () {
-      await expect(this.mock.$parseInt((ethers.MaxUint256 + 1n).toString(10))).to.be.revertedWithPanic(
+      await expect(this.mock.$parseInt((MaxUint256 + 1n).toString(10))).to.be.revertedWithPanic(
         PANIC_CODES.ARITHMETIC_OVERFLOW,
       );
-      await expect(this.mock.$parseInt((-ethers.MaxUint256 - 1n).toString(10))).to.be.revertedWithPanic(
+      await expect(this.mock.$parseInt((-MaxUint256 - 1n).toString(10))).to.be.revertedWithPanic(
         PANIC_CODES.ARITHMETIC_OVERFLOW,
       );
-      await expect(this.mock.$tryParseInt((ethers.MaxUint256 + 1n).toString(10))).to.be.revertedWithPanic(
+      await expect(this.mock.$tryParseInt((MaxUint256 + 1n).toString(10))).to.be.revertedWithPanic(
         PANIC_CODES.ARITHMETIC_OVERFLOW,
       );
-      await expect(this.mock.$tryParseInt((-ethers.MaxUint256 - 1n).toString(10))).to.be.revertedWithPanic(
+      await expect(this.mock.$tryParseInt((-MaxUint256 - 1n).toString(10))).to.be.revertedWithPanic(
         PANIC_CODES.ARITHMETIC_OVERFLOW,
       );
-      await expect(this.mock.$parseInt((ethers.MaxInt256 + 1n).toString(10))).to.be.revertedWithCustomError(
+      await expect(this.mock.$parseInt((MaxInt256 + 1n).toString(10))).to.be.revertedWithCustomError(
         this.mock,
         'StringsInvalidChar',
       );
-      await expect(this.mock.$parseInt((ethers.MinInt256 - 1n).toString(10))).to.be.revertedWithCustomError(
+      await expect(this.mock.$parseInt((MinInt256 - 1n).toString(10))).to.be.revertedWithCustomError(
         this.mock,
         'StringsInvalidChar',
       );
-      expect(await this.mock.$tryParseInt((ethers.MaxInt256 + 1n).toString(10))).to.deep.equal([false, 0n]);
-      expect(await this.mock.$tryParseInt((ethers.MinInt256 - 1n).toString(10))).to.deep.equal([false, 0n]);
+      expect(await this.mock.$tryParseInt((MaxInt256 + 1n).toString(10))).to.deep.equal([false, 0n]);
+      expect(await this.mock.$tryParseInt((MinInt256 - 1n).toString(10))).to.deep.equal([false, 0n]);
     });
 
     it('parseInt invalid character', async function () {
@@ -301,10 +312,10 @@ describe('Strings', function () {
     });
 
     it('parseHexUint overflow', async function () {
-      await expect(this.mock.$parseHexUint((ethers.MaxUint256 + 1n).toString(16))).to.be.revertedWithPanic(
+      await expect(this.mock.$parseHexUint((MaxUint256 + 1n).toString(16))).to.be.revertedWithPanic(
         PANIC_CODES.ARITHMETIC_OVERFLOW,
       );
-      await expect(this.mock.$tryParseHexUint((ethers.MaxUint256 + 1n).toString(16))).to.be.revertedWithPanic(
+      await expect(this.mock.$tryParseHexUint((MaxUint256 + 1n).toString(16))).to.be.revertedWithPanic(
         PANIC_CODES.ARITHMETIC_OVERFLOW,
       );
     });
@@ -340,15 +351,15 @@ describe('Strings', function () {
         '0x36a507fB2881d6bB62dcA54673CF5295dC07833', // tooShort
         '736a507fB2881d6bB62dcA54673CF5295dC07833', // missingPrefix - supported
       ]) {
-        if (ethers.isAddress(addr)) {
-          expect(await this.mock.$parseAddress(addr)).to.equal(ethers.getAddress(addr));
-          expect(await this.mock.$tryParseAddress(addr)).to.deep.equal([true, ethers.getAddress(addr)]);
+        if (isAddress(addr)) {
+          expect(await this.mock.$parseAddress(addr)).to.equal(getAddress(addr));
+          expect(await this.mock.$tryParseAddress(addr)).to.deep.equal([true, getAddress(addr)]);
         } else {
           await expect(this.mock.$parseAddress(addr)).to.be.revertedWithCustomError(
             this.mock,
             'StringsInvalidAddressFormat',
           );
-          expect(await this.mock.$tryParseAddress(addr)).to.deep.equal([false, ethers.ZeroAddress]);
+          expect(await this.mock.$tryParseAddress(addr)).to.deep.equal([false, ZeroAddress]);
         }
       }
     });

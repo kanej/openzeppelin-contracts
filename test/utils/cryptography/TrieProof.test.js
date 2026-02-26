@@ -1,16 +1,12 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 import { MerklePatriciaTrie, createMerkleProof } from '@ethereumjs/mpt';
+import { encodeRlp, stripZerosLeft } from 'ethers';
 import { Enum } from '../../helpers/enums';
 import { zip } from '../../helpers/iterate';
 import { generators } from '../../helpers/random';
 import { BlockTries } from '../../helpers/trie';
 import { batchInBlock } from '../../helpers/txpool';
-
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
 
 const ProofError = Enum(
   'NO_ERROR', // No error occurred during proof traversal
@@ -30,16 +26,21 @@ const ProofError = Enum(
 );
 
 const sanitizeHexString = value => (value.length % 2 ? '0x0' : '0x') + value.replace(/0x/, '');
-const encodeStorageLeaf = value => ethers.encodeRlp(ethers.stripZerosLeft(value));
-
-async function fixture() {
-  const mock = await ethers.deployContract('$TrieProof');
-  const storage = await ethers.deployContract('StorageSlotMock');
-  const target = await ethers.deployContract('CallReceiverMock');
-  return { mock, storage, target };
-}
+const encodeStorageLeaf = value => encodeRlp(stripZerosLeft(value));
 
 describe('TrieProof', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const mock = await ethers.deployContract('$TrieProof');
+    const storage = await ethers.deployContract('StorageSlotMock');
+    const target = await ethers.deployContract('CallReceiverMock');
+    return { mock, storage, target };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

@@ -1,21 +1,16 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { toBigInt } from 'ethers';
 import { product } from '../../helpers/iterate';
 import { max } from '../../helpers/math';
-
-const {
-  ethers,
-  helpers: { time },
-  networkHelpers: { loadFixture },
-} = await network.connect();
 
 const MAX_UINT32 = (1n << 32n) - 1n;
 const MAX_UINT48 = (1n << 48n) - 1n;
 const SOME_VALUES = [0n, 1n, 2n, 15n, 16n, 17n, 42n];
 
 const asUint = (value, size) => {
-  value = ethers.toBigInt(value);
-  size = ethers.toBigInt(size);
+  value = toBigInt(value);
+  size = toBigInt(size);
   expect(value).to.be.greaterThanOrEqual(0n, `value is not a valid uint${size}`);
   expect(value).to.be.lessThan(1n << size, `value is not a valid uint${size}`);
   return value;
@@ -39,11 +34,16 @@ const effectSamplesForTimepoint = timepoint => [
   MAX_UINT48,
 ];
 
-async function fixture() {
-  return { mock: await ethers.deployContract('$Time') };
-}
-
 describe('Time', function () {
+  const {
+    ethers,
+    helpers: { time },
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$Time') };
+  }
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

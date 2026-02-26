@@ -1,15 +1,9 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { parseEther, ZeroAddress, MaxUint256, Signature, verifyTypedData } from 'ethers';
 import { Delegation, getDomain } from '../../../helpers/eip712';
 import { batchInBlock } from '../../../helpers/txpool';
 import { shouldBehaveLikeVotes } from '../../../governance/utils/Votes.behavior';
-
-const connection = await network.connect();
-const {
-  ethers,
-  helpers: { time },
-  networkHelpers: { loadFixture, mine },
-} = connection;
 
 const TOKENS = [
   { Token: '$ERC20Votes', mode: 'blocknumber' },
@@ -19,9 +13,16 @@ const TOKENS = [
 const name = 'My Token';
 const symbol = 'MTKN';
 const version = '1';
-const supply = ethers.parseEther('10000000');
+const supply = parseEther('10000000');
 
 describe('ERC20Votes', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    helpers: { time },
+    networkHelpers: { loadFixture, mine },
+  } = connection;
+
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
       // accounts is required by shouldBehaveLikeVotes
@@ -71,14 +72,14 @@ describe('ERC20Votes', function () {
         describe('call', function () {
           it('delegation with balance', async function () {
             await this.token.$_mint(this.holder, supply);
-            expect(await this.token.delegates(this.holder)).to.equal(ethers.ZeroAddress);
+            expect(await this.token.delegates(this.holder)).to.equal(ZeroAddress);
 
             const tx = await this.token.connect(this.holder).delegate(this.holder);
             const timepoint = await time.clockFromReceipt[mode](tx);
 
             await expect(tx)
               .to.emit(this.token, 'DelegateChanged')
-              .withArgs(this.holder, ethers.ZeroAddress, this.holder)
+              .withArgs(this.holder, ZeroAddress, this.holder)
               .to.emit(this.token, 'DelegateVotesChanged')
               .withArgs(this.holder, 0n, supply);
 
@@ -90,11 +91,11 @@ describe('ERC20Votes', function () {
           });
 
           it('delegation without balance', async function () {
-            expect(await this.token.delegates(this.holder)).to.equal(ethers.ZeroAddress);
+            expect(await this.token.delegates(this.holder)).to.equal(ZeroAddress);
 
             await expect(this.token.connect(this.holder).delegate(this.holder))
               .to.emit(this.token, 'DelegateChanged')
-              .withArgs(this.holder, ethers.ZeroAddress, this.holder)
+              .withArgs(this.holder, ZeroAddress, this.holder)
               .to.not.emit(this.token, 'DelegateVotesChanged');
 
             expect(await this.token.delegates(this.holder)).to.equal(this.holder);
@@ -116,19 +117,19 @@ describe('ERC20Votes', function () {
                 {
                   delegatee: this.holder.address,
                   nonce,
-                  expiry: ethers.MaxUint256,
+                  expiry: MaxUint256,
                 },
               )
-              .then(ethers.Signature.from);
+              .then(Signature.from);
 
-            expect(await this.token.delegates(this.holder)).to.equal(ethers.ZeroAddress);
+            expect(await this.token.delegates(this.holder)).to.equal(ZeroAddress);
 
-            const tx = await this.token.delegateBySig(this.holder, nonce, ethers.MaxUint256, v, r, s);
+            const tx = await this.token.delegateBySig(this.holder, nonce, MaxUint256, v, r, s);
             const timepoint = await time.clockFromReceipt[mode](tx);
 
             await expect(tx)
               .to.emit(this.token, 'DelegateChanged')
-              .withArgs(this.holder, ethers.ZeroAddress, this.holder)
+              .withArgs(this.holder, ZeroAddress, this.holder)
               .to.emit(this.token, 'DelegateVotesChanged')
               .withArgs(this.holder, 0n, supply);
 
@@ -148,14 +149,14 @@ describe('ERC20Votes', function () {
                 {
                   delegatee: this.holder.address,
                   nonce,
-                  expiry: ethers.MaxUint256,
+                  expiry: MaxUint256,
                 },
               )
-              .then(ethers.Signature.from);
+              .then(Signature.from);
 
-            await this.token.delegateBySig(this.holder, nonce, ethers.MaxUint256, v, r, s);
+            await this.token.delegateBySig(this.holder, nonce, MaxUint256, v, r, s);
 
-            await expect(this.token.delegateBySig(this.holder, nonce, ethers.MaxUint256, v, r, s))
+            await expect(this.token.delegateBySig(this.holder, nonce, MaxUint256, v, r, s))
               .to.be.revertedWithCustomError(this.token, 'InvalidAccountNonce')
               .withArgs(this.holder, nonce + 1n);
           });
@@ -168,18 +169,18 @@ describe('ERC20Votes', function () {
                 {
                   delegatee: this.holder.address,
                   nonce,
-                  expiry: ethers.MaxUint256,
+                  expiry: MaxUint256,
                 },
               )
-              .then(ethers.Signature.from);
+              .then(Signature.from);
 
-            const tx = await this.token.delegateBySig(this.delegatee, nonce, ethers.MaxUint256, v, r, s);
+            const tx = await this.token.delegateBySig(this.delegatee, nonce, MaxUint256, v, r, s);
 
             const { args } = await tx
               .wait()
               .then(receipt => receipt.logs.find(event => event.fragment.name == 'DelegateChanged'));
             expect(args[0]).to.not.equal(this.holder);
-            expect(args[1]).to.equal(ethers.ZeroAddress);
+            expect(args[1]).to.equal(ZeroAddress);
             expect(args[2]).to.equal(this.delegatee);
           });
 
@@ -191,23 +192,23 @@ describe('ERC20Votes', function () {
                 {
                   delegatee: this.holder.address,
                   nonce,
-                  expiry: ethers.MaxUint256,
+                  expiry: MaxUint256,
                 },
               )
-              .then(ethers.Signature.from);
+              .then(Signature.from);
 
-            const recovered = ethers.verifyTypedData(
+            const recovered = verifyTypedData(
               this.domain,
               { Delegation },
               {
                 delegatee: this.holder.address,
                 nonce: nonce + 1n,
-                expiry: ethers.MaxUint256,
+                expiry: MaxUint256,
               },
               serialized,
             );
 
-            await expect(this.token.delegateBySig(this.holder, nonce + 1n, ethers.MaxUint256, v, r, s))
+            await expect(this.token.delegateBySig(this.holder, nonce + 1n, MaxUint256, v, r, s))
               .to.be.revertedWithCustomError(this.token, 'InvalidAccountNonce')
               .withArgs(recovered, nonce);
           });
@@ -225,7 +226,7 @@ describe('ERC20Votes', function () {
                   expiry,
                 },
               )
-              .then(ethers.Signature.from);
+              .then(Signature.from);
 
             await expect(this.token.delegateBySig(this.holder, nonce, expiry, v, r, s))
               .to.be.revertedWithCustomError(this.token, 'VotesExpiredSignature')

@@ -1,24 +1,25 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { AbiCoder, ZeroHash } from 'ethers';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const mock = await ethers.deployContract('$DoubleEndedQueue');
-
-  /** Rebuild the content of the deque as a JS array. */
-  const getContent = () =>
-    mock.$length(0).then(length => Promise.all(Array.from({ length: Number(length) }, (_, i) => mock.$at(0, i))));
-
-  return { mock, getContent };
-}
-
 describe('DoubleEndedQueue', function () {
-  const coder = ethers.AbiCoder.defaultAbiCoder();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  const coder = AbiCoder.defaultAbiCoder();
+
+  async function fixture() {
+    const mock = await ethers.deployContract('$DoubleEndedQueue');
+
+    /** Rebuild the content of the deque as a JS array. */
+    const getContent = () =>
+      mock.$length(0).then(length => Promise.all(Array.from({ length: Number(length) }, (_, i) => mock.$at(0, i))));
+
+    return { mock, getContent };
+  }
   const bytesA = coder.encode(['uint256'], [0xdeadbeef]);
   const bytesB = coder.encode(['uint256'], [0x0123456789]);
   const bytesC = coder.encode(['uint256'], [0x42424242]);
@@ -42,14 +43,14 @@ describe('DoubleEndedQueue', function () {
     });
 
     it('try getters return false/zero on empty', async function () {
-      await expect(this.mock.$tryFront(0)).to.eventually.deep.equal([false, ethers.ZeroHash]);
-      await expect(this.mock.$tryBack(0)).to.eventually.deep.equal([false, ethers.ZeroHash]);
-      await expect(this.mock.$tryAt(0, 0)).to.eventually.deep.equal([false, ethers.ZeroHash]);
+      await expect(this.mock.$tryFront(0)).to.eventually.deep.equal([false, ZeroHash]);
+      await expect(this.mock.$tryBack(0)).to.eventually.deep.equal([false, ZeroHash]);
+      await expect(this.mock.$tryAt(0, 0)).to.eventually.deep.equal([false, ZeroHash]);
     });
 
     it('try pops return false/zero on empty', async function () {
-      await expect(this.mock.$tryPopFront(0)).to.emit(this.mock, 'return$tryPopFront').withArgs(false, ethers.ZeroHash);
-      await expect(this.mock.$tryPopBack(0)).to.emit(this.mock, 'return$tryPopBack').withArgs(false, ethers.ZeroHash);
+      await expect(this.mock.$tryPopFront(0)).to.emit(this.mock, 'return$tryPopFront').withArgs(false, ZeroHash);
+      await expect(this.mock.$tryPopBack(0)).to.emit(this.mock, 'return$tryPopBack').withArgs(false, ZeroHash);
     });
 
     it('try pushes succeed on empty', async function () {
@@ -89,7 +90,7 @@ describe('DoubleEndedQueue', function () {
     });
 
     it('tryAt returns false/zero on out of bounds', async function () {
-      await expect(this.mock.$tryAt(0, this.content.length)).to.eventually.deep.equal([false, ethers.ZeroHash]);
+      await expect(this.mock.$tryAt(0, this.content.length)).to.eventually.deep.equal([false, ZeroHash]);
     });
 
     describe('push', function () {
