@@ -1,18 +1,19 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { getBytes, id, keccak256, sha256, toUtf8Bytes, ZeroHash } from 'ethers';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 import { SimpleMerkleTree } from '@openzeppelin/merkle-tree';
 
-const { ethers } = await network.connect();
-
 // generate bytes32 leaves from a string
-const toLeaves = (str, separator = '') => str.split(separator).map(e => ethers.keccak256(ethers.toUtf8Bytes(e)));
+const toLeaves = (str, separator = '') => str.split(separator).map(e => keccak256(toUtf8Bytes(e)));
 // internal node hashes
-const concatSorted = (...elements) => Buffer.concat(elements.map(ethers.getBytes).sort(Buffer.compare));
-const defaultHash = (a, b) => ethers.keccak256(concatSorted(a, b));
-const customHash = (a, b) => ethers.sha256(concatSorted(a, b));
+const concatSorted = (...elements) => Buffer.concat(elements.map(getBytes).sort(Buffer.compare));
+const defaultHash = (a, b) => keccak256(concatSorted(a, b));
+const customHash = (a, b) => sha256(concatSorted(a, b));
 
 describe('MerkleProof', function () {
+  const { ethers } = network.mocha.connectOnBefore();
+
   for (const { title, contractName, nodeHash } of [
     { title: 'default hash', contractName: '$MerkleProof', nodeHash: defaultHash },
     { title: 'custom hash', contractName: '$MerkleProofCustomHashMock', nodeHash: customHash },
@@ -185,12 +186,12 @@ describe('MerkleProof', function () {
 
         it('reverts processing manipulated proofs with a zero-value node at depth 1', async function () {
           // Create a merkle tree that contains a zero leaf at depth 1
-          const leave = ethers.id('real leaf');
-          const root = nodeHash(leave, ethers.ZeroHash);
+          const leave = id('real leaf');
+          const root = nodeHash(leave, ZeroHash);
 
           // Now we can pass any **malicious** fake leaves as valid!
           const maliciousLeaves = ['malicious', 'leaves']
-            .map(ethers.id)
+            .map(id)
             .map(id => ethers.toBeArray(id))
             .sort(Buffer.compare);
           const maliciousProof = [leave, leave];

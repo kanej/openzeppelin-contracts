@@ -1,30 +1,42 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import {
+  ZeroAddress,
+  ZeroHash,
+  encodeRlp,
+  toBeArray,
+  MaxUint256,
+  toUtf8Bytes,
+  getAddress,
+  dataSlice,
+  keccak256,
+  getCreateAddress,
+} from 'ethers';
 import { MAX_UINT64 } from '../helpers/constants';
 import { product } from '../helpers/iterate';
 import { generators } from '../helpers/random';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const mock = await ethers.deployContract('$RLP');
-
-  // Resolve function overload ambiguities like in Math.test.js
-  mock.$encode_bool = mock['$encode(bool)'];
-  mock.$encode_address = mock['$encode(address)'];
-  mock.$encode_uint256 = mock['$encode(uint256)'];
-  mock.$encode_bytes32 = mock['$encode(bytes32)'];
-  mock.$encode_bytes = mock['$encode(bytes)'];
-  mock.$encode_string = mock['$encode(string)'];
-  mock.$encode_list = mock['$encode(bytes[])'];
-
-  return { mock };
-}
-
 describe('RLP', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const mock = await ethers.deployContract('$RLP');
+
+    // Resolve function overload ambiguities like in Math.test.js
+    mock.$encode_bool = mock['$encode(bool)'];
+    mock.$encode_address = mock['$encode(address)'];
+    mock.$encode_uint256 = mock['$encode(uint256)'];
+    mock.$encode_bytes32 = mock['$encode(bytes32)'];
+    mock.$encode_bytes = mock['$encode(bytes)'];
+    mock.$encode_string = mock['$encode(string)'];
+    mock.$encode_list = mock['$encode(bytes[])'];
+
+    return { mock };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -44,11 +56,11 @@ describe('RLP', function () {
 
   it('encode/decode addresses', async function () {
     for (const addr of [
-      ethers.ZeroAddress, // zero address
+      ZeroAddress, // zero address
       '0x0000F90827F1C53a10cb7A02335B175320002935', // address with leading zeros
       generators.address(), // random address
     ]) {
-      const expected = ethers.encodeRlp(addr);
+      const expected = encodeRlp(addr);
       await expect(this.mock.$encode_address(addr)).to.eventually.equal(expected);
       await expect(this.mock.$decodeAddress(expected)).to.eventually.equal(addr);
     }
@@ -73,8 +85,8 @@ describe('RLP', function () {
   });
 
   it('encode/decode uint256', async function () {
-    for (const input of [0, 1, 127, 128, 256, 1024, 0xffffff, ethers.MaxUint256]) {
-      const expected = ethers.encodeRlp(ethers.toBeArray(input));
+    for (const input of [0, 1, 127, 128, 256, 1024, 0xffffff, MaxUint256]) {
+      const expected = encodeRlp(toBeArray(input));
 
       await expect(this.mock.$encode_uint256(input)).to.eventually.equal(expected);
       await expect(this.mock.$decodeUint256(expected)).to.eventually.equal(input);
@@ -100,7 +112,7 @@ describe('RLP', function () {
       '0x1000000000000000000000000000000000000000000000000000000000000000',
       generators.bytes32(),
     ]) {
-      const encoded = ethers.encodeRlp(input);
+      const encoded = encodeRlp(input);
       await expect(this.mock.$encode_bytes32(input)).to.eventually.equal(encoded);
       await expect(this.mock.$decodeBytes32(encoded)).to.eventually.equal(input);
     }
@@ -118,14 +130,14 @@ describe('RLP', function () {
       '0x00000000000000000000000000000000000000000000000000000000000004d2',
     );
     // Encoding for the value
-    await expect(this.mock.$decodeBytes32('0x80')).to.eventually.equal(ethers.ZeroHash);
+    await expect(this.mock.$decodeBytes32('0x80')).to.eventually.equal(ZeroHash);
     // Encoding for two zeros (and nothing else)
-    await expect(this.mock.$decodeBytes32('0x820000')).to.eventually.equal(ethers.ZeroHash);
+    await expect(this.mock.$decodeBytes32('0x820000')).to.eventually.equal(ZeroHash);
   });
 
   it('encode/decode empty byte', async function () {
     const input = '0x';
-    const expected = ethers.encodeRlp(input);
+    const expected = encodeRlp(input);
 
     await expect(this.mock.$encode_bytes(input)).to.eventually.equal(expected);
     await expect(this.mock.$decodeBytes(expected)).to.eventually.equal(input);
@@ -133,7 +145,7 @@ describe('RLP', function () {
 
   it('encode/decode single byte < 128', async function () {
     for (const input of ['0x00', '0x01', '0x7f']) {
-      const expected = ethers.encodeRlp(input);
+      const expected = encodeRlp(input);
 
       await expect(this.mock.$encode_bytes(input)).to.eventually.equal(expected);
       await expect(this.mock.$decodeBytes(expected)).to.eventually.equal(input);
@@ -142,7 +154,7 @@ describe('RLP', function () {
 
   it('encode/decode single byte >= 128', async function () {
     for (const input of ['0x80', '0xff']) {
-      const expected = ethers.encodeRlp(input);
+      const expected = encodeRlp(input);
 
       await expect(this.mock.$encode_bytes(input)).to.eventually.equal(expected);
       await expect(this.mock.$decodeBytes(expected)).to.eventually.equal(input);
@@ -155,7 +167,7 @@ describe('RLP', function () {
       '0x1234', // 2 bytes
       generators.bytes(55), // 55 bytes (maximum for short encoding)
     ]) {
-      const expected = ethers.encodeRlp(input);
+      const expected = encodeRlp(input);
 
       await expect(this.mock.$encode_bytes(input)).to.eventually.equal(expected);
       await expect(this.mock.$decodeBytes(expected)).to.eventually.equal(input);
@@ -167,7 +179,7 @@ describe('RLP', function () {
       generators.bytes(56), // 56 bytes (minimum for long encoding)
       generators.bytes(128), // 128 bytes
     ]) {
-      const expected = ethers.encodeRlp(input);
+      const expected = encodeRlp(input);
 
       await expect(this.mock.$encode_bytes(input)).to.eventually.equal(expected);
       await expect(this.mock.$decodeBytes(expected)).to.eventually.equal(input);
@@ -181,7 +193,7 @@ describe('RLP', function () {
       'dog',
       'Lorem ipsum dolor sit amet, consectetur adipisicing elit',
     ]) {
-      const expected = ethers.encodeRlp(ethers.toUtf8Bytes(input));
+      const expected = encodeRlp(toUtf8Bytes(input));
 
       await expect(this.mock.$encode_string(input)).to.eventually.equal(expected);
       await expect(this.mock.$decodeString(expected)).to.eventually.equal(input);
@@ -190,7 +202,7 @@ describe('RLP', function () {
 
   it('encodes array (bytes[])', async function () {
     for (const input of [[], ['0x'], ['0x00'], ['0x17', '0x42'], ['0x17', '0x', '0x42', '0x0123456789abcdef', '0x']]) {
-      await expect(this.mock.$encode_list(input.map(ethers.encodeRlp))).to.eventually.equal(ethers.encodeRlp(input));
+      await expect(this.mock.$encode_list(input.map(ethers.encodeRlp))).to.eventually.equal(encodeRlp(input));
     }
   });
 
@@ -211,7 +223,7 @@ describe('RLP', function () {
   it('RLP encoder predict create addresses', async function () {
     for (const [from, nonce] of product(
       [
-        ethers.ZeroAddress, // zero address
+        ZeroAddress, // zero address
         '0x0000F90827F1C53a10cb7A02335B175320002935', // address with heading zeros
         generators.address(), // random address
       ],
@@ -220,8 +232,8 @@ describe('RLP', function () {
       await expect(
         this.mock
           .$encode_list([this.mock.$encode_address(from), this.mock.$encode_uint256(nonce)])
-          .then(encoded => ethers.getAddress(ethers.dataSlice(ethers.keccak256(encoded), 12))), // hash the encoded content, take the last 20 bytes and format as (checksummed) address
-      ).to.eventually.equal(ethers.getCreateAddress({ from, nonce }));
+          .then(encoded => getAddress(dataSlice(keccak256(encoded), 12))), // hash the encoded content, take the last 20 bytes and format as (checksummed) address
+      ).to.eventually.equal(getCreateAddress({ from, nonce }));
     }
   });
 });

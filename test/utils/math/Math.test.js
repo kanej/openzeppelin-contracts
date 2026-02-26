@@ -1,21 +1,17 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { MaxUint256, MaxInt256, Typed, toBeHex, dataLength } from 'ethers';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 import { Rounding } from '../../helpers/enums';
 import { min, max, modExp } from '../../helpers/math';
 import { generators } from '../../helpers/random';
 import { product, range } from '../../helpers/iterate';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const RoundingDown = [Rounding.Floor, Rounding.Trunc];
 const RoundingUp = [Rounding.Ceil, Rounding.Expand];
 
-const bytes = (value, width = undefined) => ethers.Typed.bytes(ethers.toBeHex(value, width));
-const uint256 = value => ethers.Typed.uint256(value);
+const bytes = (value, width = undefined) => Typed.bytes(toBeHex(value, width));
+const uint256 = value => Typed.uint256(value);
 bytes.zero = '0x';
 uint256.zero = 0n;
 
@@ -27,27 +23,31 @@ const testCommutative = (fn, lhs, rhs, expected, ...extra) =>
 
 const splitHighLow = n => [n / (1n << 256n), n % (1n << 256n)];
 
-async function fixture() {
-  const mock = await ethers.deployContract('$Math');
-
-  // disambiguation, we use the version with explicit rounding
-  mock.$mulDiv = mock['$mulDiv(uint256,uint256,uint256,uint8)'];
-  mock.$sqrt = mock['$sqrt(uint256,uint8)'];
-  mock.$log2 = mock['$log2(uint256,uint8)'];
-  mock.$log10 = mock['$log10(uint256,uint8)'];
-  mock.$log256 = mock['$log256(uint256,uint8)'];
-
-  return { mock };
-}
-
 describe('Math', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const mock = await ethers.deployContract('$Math');
+
+    // disambiguation, we use the version with explicit rounding
+    mock.$mulDiv = mock['$mulDiv(uint256,uint256,uint256,uint8)'];
+    mock.$sqrt = mock['$sqrt(uint256,uint8)'];
+    mock.$log2 = mock['$log2(uint256,uint8)'];
+    mock.$log10 = mock['$log10(uint256,uint8)'];
+    mock.$log256 = mock['$log256(uint256,uint8)'];
+
+    return { mock };
+  }
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
 
   describe('add512', function () {
     it('adds correctly without reverting', async function () {
-      const values = [0n, 1n, 17n, 42n, ethers.MaxUint256 - 1n, ethers.MaxUint256];
+      const values = [0n, 1n, 17n, 42n, MaxUint256 - 1n, MaxUint256];
       for (const [a, b] of product(values, values)) {
         await expect(this.mock.$add512(a, b)).to.eventually.deep.equal(splitHighLow(a + b));
       }
@@ -56,7 +56,7 @@ describe('Math', function () {
 
   describe('mul512', function () {
     it('multiplies correctly without reverting', async function () {
-      const values = [0n, 1n, 17n, 42n, ethers.MaxUint256 - 1n, ethers.MaxUint256];
+      const values = [0n, 1n, 17n, 42n, MaxUint256 - 1n, MaxUint256];
       for (const [a, b] of product(values, values)) {
         await expect(this.mock.$mul512(a, b)).to.eventually.deep.equal(splitHighLow(a * b));
       }
@@ -71,7 +71,7 @@ describe('Math', function () {
     });
 
     it('reverts on addition overflow', async function () {
-      const a = ethers.MaxUint256;
+      const a = MaxUint256;
       const b = 1n;
       await testCommutative(this.mock.$tryAdd, a, b, [false, 0n]);
     });
@@ -105,7 +105,7 @@ describe('Math', function () {
     });
 
     it('reverts on multiplication overflow', async function () {
-      const a = ethers.MaxUint256;
+      const a = MaxUint256;
       const b = 2n;
       await testCommutative(this.mock.$tryMul, a, b, [false, 0n]);
     });
@@ -177,14 +177,12 @@ describe('Math', function () {
       const b = 1234n;
       await testCommutative(this.mock.$saturatingAdd, a, b, a + b);
       await testCommutative(this.mock.$saturatingAdd, a, 0n, a);
-      await testCommutative(this.mock.$saturatingAdd, ethers.MaxUint256, 0n, ethers.MaxUint256);
+      await testCommutative(this.mock.$saturatingAdd, MaxUint256, 0n, MaxUint256);
     });
 
     it('bounds on addition overflow', async function () {
-      await testCommutative(this.mock.$saturatingAdd, ethers.MaxUint256, 1n, ethers.MaxUint256);
-      await expect(this.mock.$saturatingAdd(ethers.MaxUint256, ethers.MaxUint256)).to.eventually.equal(
-        ethers.MaxUint256,
-      );
+      await testCommutative(this.mock.$saturatingAdd, MaxUint256, 1n, MaxUint256);
+      await expect(this.mock.$saturatingAdd(MaxUint256, MaxUint256)).to.eventually.equal(MaxUint256);
     });
   });
 
@@ -196,14 +194,14 @@ describe('Math', function () {
       await expect(this.mock.$saturatingSub(a, a)).to.eventually.equal(0n);
       await expect(this.mock.$saturatingSub(a, 0n)).to.eventually.equal(a);
       await expect(this.mock.$saturatingSub(0n, a)).to.eventually.equal(0n);
-      await expect(this.mock.$saturatingSub(ethers.MaxUint256, 1n)).to.eventually.equal(ethers.MaxUint256 - 1n);
+      await expect(this.mock.$saturatingSub(MaxUint256, 1n)).to.eventually.equal(MaxUint256 - 1n);
     });
 
     it('bounds on subtraction overflow', async function () {
       await expect(this.mock.$saturatingSub(0n, 1n)).to.eventually.equal(0n);
       await expect(this.mock.$saturatingSub(1n, 2n)).to.eventually.equal(0n);
-      await expect(this.mock.$saturatingSub(1n, ethers.MaxUint256)).to.eventually.equal(0n);
-      await expect(this.mock.$saturatingSub(ethers.MaxUint256 - 1n, ethers.MaxUint256)).to.eventually.equal(0n);
+      await expect(this.mock.$saturatingSub(1n, MaxUint256)).to.eventually.equal(0n);
+      await expect(this.mock.$saturatingSub(MaxUint256 - 1n, MaxUint256)).to.eventually.equal(0n);
     });
   });
 
@@ -221,9 +219,9 @@ describe('Math', function () {
     });
 
     it('bounds on multiplication overflow', async function () {
-      const a = ethers.MaxUint256;
+      const a = MaxUint256;
       const b = 2n;
-      await testCommutative(this.mock.$saturatingMul, a, b, ethers.MaxUint256);
+      await testCommutative(this.mock.$saturatingMul, a, b, MaxUint256);
     });
   });
 
@@ -259,7 +257,7 @@ describe('Math', function () {
     });
 
     it('is correctly calculated with two max uint256 numbers', async function () {
-      const a = ethers.MaxUint256;
+      const a = MaxUint256;
       await expect(this.mock.$average(a, a)).to.eventually.equal(a);
     });
   });
@@ -294,16 +292,16 @@ describe('Math', function () {
     });
 
     it('does not overflow', async function () {
-      const a = ethers.MaxUint256;
+      const a = MaxUint256;
       const b = 2n;
       const r = 1n << 255n;
       await expect(this.mock.$ceilDiv(a, b)).to.eventually.equal(r);
     });
 
     it('correctly computes max uint256 divided by 1', async function () {
-      const a = ethers.MaxUint256;
+      const a = MaxUint256;
       const b = 1n;
-      const r = ethers.MaxUint256;
+      const r = MaxUint256;
       await expect(this.mock.$ceilDiv(a, b)).to.eventually.equal(r);
     });
   });
@@ -318,7 +316,7 @@ describe('Math', function () {
 
     it('reverts with result higher than 2 ^ 256', async function () {
       const a = 5n;
-      const b = ethers.MaxUint256;
+      const b = MaxUint256;
       const c = 2n;
       await expect(this.mock.$mulDiv(a, b, c, Rounding.Floor)).to.be.revertedWithPanic(
         PANIC_CODES.ARITHMETIC_UNDER_OR_OVERFLOW,
@@ -335,23 +333,19 @@ describe('Math', function () {
 
       it('large values', async function () {
         for (const rounding of RoundingDown) {
-          await expect(this.mock.$mulDiv(42n, ethers.MaxUint256 - 1n, ethers.MaxUint256, rounding)).to.eventually.equal(
-            41n,
+          await expect(this.mock.$mulDiv(42n, MaxUint256 - 1n, MaxUint256, rounding)).to.eventually.equal(41n);
+
+          await expect(this.mock.$mulDiv(17n, MaxUint256, MaxUint256, rounding)).to.eventually.equal(17n);
+
+          await expect(this.mock.$mulDiv(MaxUint256 - 1n, MaxUint256 - 1n, MaxUint256, rounding)).to.eventually.equal(
+            MaxUint256 - 2n,
           );
 
-          await expect(this.mock.$mulDiv(17n, ethers.MaxUint256, ethers.MaxUint256, rounding)).to.eventually.equal(17n);
+          await expect(this.mock.$mulDiv(MaxUint256, MaxUint256 - 1n, MaxUint256, rounding)).to.eventually.equal(
+            MaxUint256 - 1n,
+          );
 
-          await expect(
-            this.mock.$mulDiv(ethers.MaxUint256 - 1n, ethers.MaxUint256 - 1n, ethers.MaxUint256, rounding),
-          ).to.eventually.equal(ethers.MaxUint256 - 2n);
-
-          await expect(
-            this.mock.$mulDiv(ethers.MaxUint256, ethers.MaxUint256 - 1n, ethers.MaxUint256, rounding),
-          ).to.eventually.equal(ethers.MaxUint256 - 1n);
-
-          await expect(
-            this.mock.$mulDiv(ethers.MaxUint256, ethers.MaxUint256, ethers.MaxUint256, rounding),
-          ).to.eventually.equal(ethers.MaxUint256);
+          await expect(this.mock.$mulDiv(MaxUint256, MaxUint256, MaxUint256, rounding)).to.eventually.equal(MaxUint256);
         }
       });
     });
@@ -366,23 +360,19 @@ describe('Math', function () {
 
       it('large values', async function () {
         for (const rounding of RoundingUp) {
-          await expect(this.mock.$mulDiv(42n, ethers.MaxUint256 - 1n, ethers.MaxUint256, rounding)).to.eventually.equal(
-            42n,
+          await expect(this.mock.$mulDiv(42n, MaxUint256 - 1n, MaxUint256, rounding)).to.eventually.equal(42n);
+
+          await expect(this.mock.$mulDiv(17n, MaxUint256, MaxUint256, rounding)).to.eventually.equal(17n);
+
+          await expect(this.mock.$mulDiv(MaxUint256 - 1n, MaxUint256 - 1n, MaxUint256, rounding)).to.eventually.equal(
+            MaxUint256 - 1n,
           );
 
-          await expect(this.mock.$mulDiv(17n, ethers.MaxUint256, ethers.MaxUint256, rounding)).to.eventually.equal(17n);
+          await expect(this.mock.$mulDiv(MaxUint256, MaxUint256 - 1n, MaxUint256, rounding)).to.eventually.equal(
+            MaxUint256 - 1n,
+          );
 
-          await expect(
-            this.mock.$mulDiv(ethers.MaxUint256 - 1n, ethers.MaxUint256 - 1n, ethers.MaxUint256, rounding),
-          ).to.eventually.equal(ethers.MaxUint256 - 1n);
-
-          await expect(
-            this.mock.$mulDiv(ethers.MaxUint256, ethers.MaxUint256 - 1n, ethers.MaxUint256, rounding),
-          ).to.eventually.equal(ethers.MaxUint256 - 1n);
-
-          await expect(
-            this.mock.$mulDiv(ethers.MaxUint256, ethers.MaxUint256, ethers.MaxUint256, rounding),
-          ).to.eventually.equal(ethers.MaxUint256);
+          await expect(this.mock.$mulDiv(MaxUint256, MaxUint256, MaxUint256, rounding)).to.eventually.equal(MaxUint256);
         }
       });
     });
@@ -391,7 +381,7 @@ describe('Math', function () {
   describe('mulShr', function () {
     it('reverts with result higher than 2 ^ 256', async function () {
       const a = 5n;
-      const b = ethers.MaxUint256;
+      const b = MaxUint256;
       const c = 1n;
       await expect(this.mock.$mulShr(a, b, c, Rounding.Floor)).to.be.revertedWithPanic(
         PANIC_CODES.ARITHMETIC_UNDER_OR_OVERFLOW,
@@ -408,17 +398,13 @@ describe('Math', function () {
 
       it('large values', async function () {
         for (const rounding of RoundingDown) {
-          await expect(this.mock.$mulShr(42n, ethers.MaxUint256, 255n, rounding)).to.eventually.equal(83n);
+          await expect(this.mock.$mulShr(42n, MaxUint256, 255n, rounding)).to.eventually.equal(83n);
 
-          await expect(this.mock.$mulShr(17n, ethers.MaxUint256, 255n, rounding)).to.eventually.equal(33n);
+          await expect(this.mock.$mulShr(17n, MaxUint256, 255n, rounding)).to.eventually.equal(33n);
 
-          await expect(this.mock.$mulShr(ethers.MaxUint256, ethers.MaxInt256 + 1n, 255n, rounding)).to.eventually.equal(
-            ethers.MaxUint256,
-          );
+          await expect(this.mock.$mulShr(MaxUint256, MaxInt256 + 1n, 255n, rounding)).to.eventually.equal(MaxUint256);
 
-          await expect(this.mock.$mulShr(ethers.MaxUint256, ethers.MaxInt256, 255n, rounding)).to.eventually.equal(
-            ethers.MaxUint256 - 2n,
-          );
+          await expect(this.mock.$mulShr(MaxUint256, MaxInt256, 255n, rounding)).to.eventually.equal(MaxUint256 - 2n);
         }
       });
     });
@@ -433,17 +419,13 @@ describe('Math', function () {
 
       it('large values', async function () {
         for (const rounding of RoundingUp) {
-          await expect(this.mock.$mulShr(42n, ethers.MaxUint256, 255n, rounding)).to.eventually.equal(84n);
+          await expect(this.mock.$mulShr(42n, MaxUint256, 255n, rounding)).to.eventually.equal(84n);
 
-          await expect(this.mock.$mulShr(17n, ethers.MaxUint256, 255n, rounding)).to.eventually.equal(34n);
+          await expect(this.mock.$mulShr(17n, MaxUint256, 255n, rounding)).to.eventually.equal(34n);
 
-          await expect(this.mock.$mulShr(ethers.MaxUint256, ethers.MaxInt256 + 1n, 255n, rounding)).to.eventually.equal(
-            ethers.MaxUint256,
-          );
+          await expect(this.mock.$mulShr(MaxUint256, MaxInt256 + 1n, 255n, rounding)).to.eventually.equal(MaxUint256);
 
-          await expect(this.mock.$mulShr(ethers.MaxUint256, ethers.MaxInt256, 255n, rounding)).to.eventually.equal(
-            ethers.MaxUint256 - 1n,
-          );
+          await expect(this.mock.$mulShr(MaxUint256, MaxInt256, 255n, rounding)).to.eventually.equal(MaxUint256 - 1n);
         }
       });
     });
@@ -516,7 +498,7 @@ describe('Math', function () {
         range(320, 512, 64).map(e => [2n ** BigInt(e) + 1n, e]),
       )) {
         it(`calculates b ** e % m (b=2**${log2b}+1) (e=2**${log2e}+1) (m=2**${log2m}+1)`, async function () {
-          const mLength = ethers.dataLength(ethers.toBeHex(m));
+          const mLength = dataLength(toBeHex(m));
 
           await expect(this.mock.$modExp(bytes(b), bytes(e), bytes(m))).to.eventually.equal(
             bytes(modExp(b, e, m), mLength).value,
@@ -557,7 +539,7 @@ describe('Math', function () {
         range(320, 513, 64).map(e => [2n ** BigInt(e) + 1n, e]),
       )) {
         it(`calculates b ** e % m (b=2**${log2b}+1) (e=2**${log2e}+1) (m=2**${log2m}+1)`, async function () {
-          const mLength = ethers.dataLength(ethers.toBeHex(m));
+          const mLength = dataLength(toBeHex(m));
 
           await expect(this.mock.$tryModExp(bytes(b), bytes(e), bytes(m))).to.eventually.deep.equal([
             true,
@@ -582,7 +564,7 @@ describe('Math', function () {
         await expect(this.mock.$sqrt(1000001n, rounding)).to.eventually.equal(1000n);
         await expect(this.mock.$sqrt(1002000n, rounding)).to.eventually.equal(1000n);
         await expect(this.mock.$sqrt(1002001n, rounding)).to.eventually.equal(1001n);
-        await expect(this.mock.$sqrt(ethers.MaxUint256, rounding)).to.eventually.equal(
+        await expect(this.mock.$sqrt(MaxUint256, rounding)).to.eventually.equal(
           340282366920938463463374607431768211455n,
         );
       }
@@ -601,7 +583,7 @@ describe('Math', function () {
         await expect(this.mock.$sqrt(1000001n, rounding)).to.eventually.equal(1001n);
         await expect(this.mock.$sqrt(1002000n, rounding)).to.eventually.equal(1001n);
         await expect(this.mock.$sqrt(1002001n, rounding)).to.eventually.equal(1001n);
-        await expect(this.mock.$sqrt(ethers.MaxUint256, rounding)).to.eventually.equal(
+        await expect(this.mock.$sqrt(MaxUint256, rounding)).to.eventually.equal(
           340282366920938463463374607431768211456n,
         );
       }
@@ -622,7 +604,7 @@ describe('Math', function () {
           await expect(this.mock.$log2(7n, rounding)).to.eventually.equal(2n);
           await expect(this.mock.$log2(8n, rounding)).to.eventually.equal(3n);
           await expect(this.mock.$log2(9n, rounding)).to.eventually.equal(3n);
-          await expect(this.mock.$log2(ethers.MaxUint256, rounding)).to.eventually.equal(255n);
+          await expect(this.mock.$log2(MaxUint256, rounding)).to.eventually.equal(255n);
         }
       });
 
@@ -638,7 +620,7 @@ describe('Math', function () {
           await expect(this.mock.$log2(7n, rounding)).to.eventually.equal(3n);
           await expect(this.mock.$log2(8n, rounding)).to.eventually.equal(3n);
           await expect(this.mock.$log2(9n, rounding)).to.eventually.equal(4n);
-          await expect(this.mock.$log2(ethers.MaxUint256, rounding)).to.eventually.equal(256n);
+          await expect(this.mock.$log2(MaxUint256, rounding)).to.eventually.equal(256n);
         }
       });
     });
@@ -658,7 +640,7 @@ describe('Math', function () {
           await expect(this.mock.$log10(999n, rounding)).to.eventually.equal(2n);
           await expect(this.mock.$log10(1000n, rounding)).to.eventually.equal(3n);
           await expect(this.mock.$log10(1001n, rounding)).to.eventually.equal(3n);
-          await expect(this.mock.$log10(ethers.MaxUint256, rounding)).to.eventually.equal(77n);
+          await expect(this.mock.$log10(MaxUint256, rounding)).to.eventually.equal(77n);
         }
       });
 
@@ -676,7 +658,7 @@ describe('Math', function () {
           await expect(this.mock.$log10(999n, rounding)).to.eventually.equal(3n);
           await expect(this.mock.$log10(1000n, rounding)).to.eventually.equal(3n);
           await expect(this.mock.$log10(1001n, rounding)).to.eventually.equal(4n);
-          await expect(this.mock.$log10(ethers.MaxUint256, rounding)).to.eventually.equal(78n);
+          await expect(this.mock.$log10(MaxUint256, rounding)).to.eventually.equal(78n);
         }
       });
     });
@@ -693,7 +675,7 @@ describe('Math', function () {
           await expect(this.mock.$log256(65535n, rounding)).to.eventually.equal(1n);
           await expect(this.mock.$log256(65536n, rounding)).to.eventually.equal(2n);
           await expect(this.mock.$log256(65537n, rounding)).to.eventually.equal(2n);
-          await expect(this.mock.$log256(ethers.MaxUint256, rounding)).to.eventually.equal(31n);
+          await expect(this.mock.$log256(MaxUint256, rounding)).to.eventually.equal(31n);
         }
       });
 
@@ -708,7 +690,7 @@ describe('Math', function () {
           await expect(this.mock.$log256(65535n, rounding)).to.eventually.equal(2n);
           await expect(this.mock.$log256(65536n, rounding)).to.eventually.equal(2n);
           await expect(this.mock.$log256(65537n, rounding)).to.eventually.equal(3n);
-          await expect(this.mock.$log256(ethers.MaxUint256, rounding)).to.eventually.equal(32n);
+          await expect(this.mock.$log256(MaxUint256, rounding)).to.eventually.equal(32n);
         }
       });
     });
@@ -731,7 +713,7 @@ describe('Math', function () {
     });
 
     it('max value', async function () {
-      await expect(this.mock.$clz(ethers.MaxUint256)).to.eventually.equal(0);
+      await expect(this.mock.$clz(MaxUint256)).to.eventually.equal(0);
     });
 
     it('specific patterns', async function () {

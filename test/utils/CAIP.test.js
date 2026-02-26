@@ -1,11 +1,12 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { Typed } from 'ethers';
 import { CHAINS, getLocalChain } from '../helpers/chains';
 import { generators } from '../helpers/random';
 
-const { ethers } = await network.connect();
-
 describe('CAIP utilities', function () {
+  const { ethers } = network.mocha.connectOnBefore();
+
   before(async function () {
     this.local = await getLocalChain(ethers.provider);
   });
@@ -40,14 +41,14 @@ describe('CAIP utilities', function () {
 
     it(`local(${account})`, async function () {
       const caip10 = this.local.toCaip10(account);
-      expect(await this.mock.$local(ethers.Typed.address(account))).to.equal(caip10);
+      expect(await this.mock.$local(Typed.address(account))).to.equal(caip10);
     });
 
     for (const { caip2, toCaip10 } of Object.values(CHAINS)) {
       const caip10 = toCaip10(account);
 
       it(`format(${caip2}, ${account})`, async function () {
-        expect(await this.mock.$format(ethers.Typed.string(caip2), ethers.Typed.string(account))).to.equal(caip10);
+        expect(await this.mock.$format(Typed.string(caip2), Typed.string(account))).to.equal(caip10);
       });
 
       it(`parse(${caip10})`, async function () {

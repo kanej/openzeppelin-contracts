@@ -1,18 +1,14 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { ZeroHash } from 'ethers';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
 import { generators } from '../../helpers/random';
 import { range } from '../../helpers/iterate';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const DEPTH = 4; // 16 slots
 
-const makeTree = (leaves = [], length = 2 ** DEPTH, zero = ethers.ZeroHash) =>
+const makeTree = (leaves = [], length = 2 ** DEPTH, zero = ZeroHash) =>
   StandardMerkleTree.of(
     []
       .concat(
@@ -24,15 +20,19 @@ const makeTree = (leaves = [], length = 2 ** DEPTH, zero = ethers.ZeroHash) =>
     { sortLeaves: false },
   );
 
-const ZERO = makeTree().leafHash([ethers.ZeroHash]);
-
-async function fixture() {
-  const mock = await ethers.deployContract('MerkleTreeMock');
-  await mock.setup(DEPTH, ZERO);
-  return { mock };
-}
+const ZERO = makeTree().leafHash([ZeroHash]);
 
 describe('MerkleTree', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const mock = await ethers.deployContract('MerkleTreeMock');
+    await mock.setup(DEPTH, ZERO);
+    return { mock };
+  }
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -68,9 +68,9 @@ describe('MerkleTree', function () {
     });
 
     it('pushing to a full tree reverts', async function () {
-      await Promise.all(Array.from({ length: 2 ** Number(DEPTH) }).map(() => this.mock.push(ethers.ZeroHash)));
+      await Promise.all(Array.from({ length: 2 ** Number(DEPTH) }).map(() => this.mock.push(ZeroHash)));
 
-      await expect(this.mock.push(ethers.ZeroHash)).to.be.revertedWithPanic(PANIC_CODES.TOO_MUCH_MEMORY_ALLOCATED);
+      await expect(this.mock.push(ZeroHash)).to.be.revertedWithPanic(PANIC_CODES.TOO_MUCH_MEMORY_ALLOCATED);
     });
   });
 

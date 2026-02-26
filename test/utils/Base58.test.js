@@ -1,16 +1,17 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
-
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  return { mock: await ethers.deployContract('$Base58') };
-}
+import { randomBytes, hexlify, encodeBase58, isHexString, getBytes, toUtf8Bytes, Interface } from 'ethers';
 
 describe('Base58', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$Base58') };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -23,9 +24,9 @@ describe('Base58', function () {
         it(
           [length > 32 && '[skip-on-coverage]', `buffer of length ${length}`].filter(Boolean).join(' '),
           async function () {
-            const buffer = ethers.randomBytes(length);
-            const hex = ethers.hexlify(buffer);
-            const b58 = ethers.encodeBase58(buffer);
+            const buffer = randomBytes(length);
+            const hex = hexlify(buffer);
+            const b58 = encodeBase58(buffer);
 
             await expect(this.mock.$encode(hex)).to.eventually.equal(b58);
             await expect(this.mock.$decode(b58)).to.eventually.equal(hex);
@@ -45,8 +46,8 @@ describe('Base58', function () {
         { raw: '0x0000287fb4cd', b58: '11233QC4' },
       ])
         it(raw, async function () {
-          const buffer = (ethers.isHexString(raw) ? ethers.getBytes : ethers.toUtf8Bytes)(raw);
-          const hex = ethers.hexlify(buffer);
+          const buffer = (isHexString(raw) ? getBytes : ethers.toUtf8Bytes)(raw);
+          const hex = hexlify(buffer);
 
           await expect(this.mock.$encode(hex)).to.eventually.equal(b58);
           await expect(this.mock.$decode(b58)).to.eventually.equal(hex);
@@ -56,8 +57,8 @@ describe('Base58', function () {
     describe('decode invalid format', function () {
       for (const chr of ['I', '-', '~'])
         it(`Invalid base58 char ${chr}`, async function () {
-          const getHexCode = str => ethers.hexlify(ethers.toUtf8Bytes(str));
-          const helper = { interface: ethers.Interface.from(['error InvalidBase58Char(bytes1)']) };
+          const getHexCode = str => hexlify(toUtf8Bytes(str));
+          const helper = { interface: Interface.from(['error InvalidBase58Char(bytes1)']) };
 
           await expect(this.mock.$decode(`VYRWKp${chr}pnN7`))
             .to.be.revertedWithCustomError(helper, 'InvalidBase58Char')

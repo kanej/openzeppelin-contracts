@@ -1,33 +1,34 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { MaxUint256, Signature, verifyTypedData } from 'ethers';
 import { Permit, getDomain, domainSeparator } from '../../../helpers/eip712';
-
-const {
-  ethers,
-  helpers: { time },
-  networkHelpers: { loadFixture },
-} = await network.connect();
 
 const name = 'My Token';
 const symbol = 'MTKN';
 const initialSupply = 100n;
 
-async function fixture() {
-  const [holder, spender, owner, other] = await ethers.getSigners();
-
-  const token = await ethers.deployContract('$ERC20Permit', [name, symbol, name]);
-  await token.$_mint(holder, initialSupply);
-
-  return {
-    holder,
-    spender,
-    owner,
-    other,
-    token,
-  };
-}
-
 describe('ERC20Permit', function () {
+  const {
+    ethers,
+    helpers: { time },
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [holder, spender, owner, other] = await ethers.getSigners();
+
+    const token = await ethers.deployContract('$ERC20Permit', [name, symbol, name]);
+    await token.$_mint(holder, initialSupply);
+
+    return {
+      holder,
+      spender,
+      owner,
+      other,
+      token,
+    };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -43,7 +44,7 @@ describe('ERC20Permit', function () {
   describe('permit', function () {
     const value = 42n;
     const nonce = 0n;
-    const maxDeadline = ethers.MaxUint256;
+    const maxDeadline = MaxUint256;
 
     beforeEach(function () {
       this.buildData = (contract, deadline = maxDeadline) =>
@@ -63,7 +64,7 @@ describe('ERC20Permit', function () {
     it('accepts owner signature', async function () {
       const { v, r, s } = await this.buildData(this.token)
         .then(({ domain, types, message }) => this.owner.signTypedData(domain, types, message))
-        .then(ethers.Signature.from);
+        .then(Signature.from);
 
       await this.token.permit(this.owner, this.spender, value, maxDeadline, v, r, s);
 
@@ -74,12 +75,12 @@ describe('ERC20Permit', function () {
     it('rejects reused signature', async function () {
       const { v, r, s, serialized } = await this.buildData(this.token)
         .then(({ domain, types, message }) => this.owner.signTypedData(domain, types, message))
-        .then(ethers.Signature.from);
+        .then(Signature.from);
 
       await this.token.permit(this.owner, this.spender, value, maxDeadline, v, r, s);
 
       const recovered = await this.buildData(this.token).then(({ domain, types, message }) =>
-        ethers.verifyTypedData(domain, types, { ...message, nonce: nonce + 1n, deadline: maxDeadline }, serialized),
+        verifyTypedData(domain, types, { ...message, nonce: nonce + 1n, deadline: maxDeadline }, serialized),
       );
 
       await expect(this.token.permit(this.owner, this.spender, value, maxDeadline, v, r, s))
@@ -90,7 +91,7 @@ describe('ERC20Permit', function () {
     it('rejects other signature', async function () {
       const { v, r, s } = await this.buildData(this.token)
         .then(({ domain, types, message }) => this.other.signTypedData(domain, types, message))
-        .then(ethers.Signature.from);
+        .then(Signature.from);
 
       await expect(this.token.permit(this.owner, this.spender, value, maxDeadline, v, r, s))
         .to.be.revertedWithCustomError(this.token, 'ERC2612InvalidSigner')
@@ -102,7 +103,7 @@ describe('ERC20Permit', function () {
 
       const { v, r, s } = await this.buildData(this.token, deadline)
         .then(({ domain, types, message }) => this.owner.signTypedData(domain, types, message))
-        .then(ethers.Signature.from);
+        .then(Signature.from);
 
       await expect(this.token.permit(this.owner, this.spender, value, deadline, v, r, s))
         .to.be.revertedWithCustomError(this.token, 'ERC2612ExpiredSignature')
