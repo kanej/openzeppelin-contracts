@@ -1,17 +1,18 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { toBeHex } from 'ethers';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  return { mock: await ethers.deployContract('$Panic') };
-}
-
 describe('Panic', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$Panic') };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -28,7 +29,7 @@ describe('Panic', function () {
     RESOURCE_ERROR: PANIC_CODES.TOO_MUCH_MEMORY_ALLOCATED,
     INVALID_INTERNAL_FUNCTION: PANIC_CODES.ZERO_INITIALIZED_VARIABLE,
   })) {
-    describe(`${name} (${ethers.toBeHex(code)})`, function () {
+    describe(`${name} (${toBeHex(code)})`, function () {
       it('exposes panic code as constant', async function () {
         expect(await this.mock.getFunction(`$${name}`)()).to.equal(code);
       });

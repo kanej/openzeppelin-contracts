@@ -2,18 +2,18 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { shouldBehaveLikeERC6909 } from './ERC6909.behavior';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [holder, operator, recipient, other] = await ethers.getSigners();
-  const token = await ethers.deployContract('$ERC6909');
-  return { token, holder, operator, recipient, other };
-}
-
 describe('ERC6909', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [holder, operator, recipient, other] = await ethers.getSigners();
+    const token = await ethers.deployContract('$ERC6909');
+    return { token, holder, operator, recipient, other };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

@@ -2,23 +2,23 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { ImplementationLabel, AdminLabel, BeaconLabel } from '../../helpers/storage';
 
-const {
-  ethers,
-  helpers: { storage },
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [, admin, anotherAccount] = await ethers.getSigners();
-
-  const utils = await ethers.deployContract('$ERC1967Utils');
-  const v1 = await ethers.deployContract('DummyImplementation');
-  const v2 = await ethers.deployContract('CallReceiverMock');
-
-  return { admin, anotherAccount, utils, v1, v2 };
-}
-
 describe('ERC1967Utils', function () {
+  const {
+    ethers,
+    helpers: { storage },
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [, admin, anotherAccount] = await ethers.getSigners();
+
+    const utils = await ethers.deployContract('$ERC1967Utils');
+    const v1 = await ethers.deployContract('DummyImplementation');
+    const v2 = await ethers.deployContract('CallReceiverMock');
+
+    return { admin, anotherAccount, utils, v1, v2 };
+  }
+
   beforeEach('setup', async function () {
     Object.assign(this, await loadFixture(fixture));
   });

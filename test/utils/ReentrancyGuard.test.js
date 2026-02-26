@@ -1,13 +1,13 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 for (const variant of ['', 'Transient']) {
   describe(`Reentrancy${variant}Guard`, function () {
+    const {
+      ethers,
+      networkHelpers: { loadFixture },
+    } = network.mocha.connectOnBefore();
+
     async function fixture() {
       const name = `Reentrancy${variant}Mock`;
       const mock = await ethers.deployContract(name);

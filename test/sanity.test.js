@@ -1,16 +1,16 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture, mine },
-} = await network.connect();
-
-async function fixture() {
-  return {};
-}
-
 describe('Environment sanity', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture, mine },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return {};
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

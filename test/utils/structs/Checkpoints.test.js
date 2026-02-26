@@ -2,12 +2,12 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { OPTS } from '../../../scripts/generate/templates/Checkpoints.opts';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 describe('Checkpoints', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
   for (const opt of OPTS) {
     describe(opt.historyTypeName, function () {
       const fixture = async () => {

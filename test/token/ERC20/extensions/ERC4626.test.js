@@ -3,21 +3,21 @@ import { expect } from 'chai';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 import { Enum } from '../../../helpers/enums';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const name = 'My Token';
 const symbol = 'MTKN';
 const decimals = 18n;
 
-async function fixture() {
-  const [holder, recipient, spender, other, ...accounts] = await ethers.getSigners();
-  return { holder, recipient, spender, other, accounts };
-}
-
 describe('ERC4626', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [holder, recipient, spender, other, ...accounts] = await ethers.getSigners();
+    return { holder, recipient, spender, other, accounts };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

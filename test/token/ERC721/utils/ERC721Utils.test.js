@@ -3,37 +3,36 @@ import { expect } from 'chai';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 import { RevertType } from '../../../helpers/enums';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const tokenId = 1n;
 
 const RECEIVER_MAGIC_VALUE = '0x150b7a02';
 
-const deployReceiver = (revertType, returnValue = RECEIVER_MAGIC_VALUE) =>
-  ethers.deployContract('$ERC721ReceiverMock', [returnValue, revertType]);
-
-const fixture = async () => {
-  const [eoa, operator, owner] = await ethers.getSigners();
-  const utils = await ethers.deployContract('$ERC721Utils');
-
-  const receivers = {
-    correct: await deployReceiver(RevertType.None),
-    invalid: await deployReceiver(RevertType.None, '0xdeadbeef'),
-    message: await deployReceiver(RevertType.RevertWithMessage),
-    empty: await deployReceiver(RevertType.RevertWithoutMessage),
-    customError: await deployReceiver(RevertType.RevertWithCustomError),
-    panic: await deployReceiver(RevertType.Panic),
-    nonReceiver: await ethers.deployContract('CallReceiverMock'),
-    eoa,
-  };
-
-  return { operator, owner, utils, receivers };
-};
-
 describe('ERC721Utils', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  const deployReceiver = (revertType, returnValue = RECEIVER_MAGIC_VALUE) =>
+    ethers.deployContract('$ERC721ReceiverMock', [returnValue, revertType]);
+
+  const fixture = async () => {
+    const [eoa, operator, owner] = await ethers.getSigners();
+    const utils = await ethers.deployContract('$ERC721Utils');
+
+    const receivers = {
+      correct: await deployReceiver(RevertType.None),
+      invalid: await deployReceiver(RevertType.None, '0xdeadbeef'),
+      message: await deployReceiver(RevertType.RevertWithMessage),
+      empty: await deployReceiver(RevertType.RevertWithoutMessage),
+      customError: await deployReceiver(RevertType.RevertWithCustomError),
+      panic: await deployReceiver(RevertType.Panic),
+      nonReceiver: await ethers.deployContract('CallReceiverMock'),
+      eoa,
+    };
+
+    return { operator, owner, utils, receivers };
+  };
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

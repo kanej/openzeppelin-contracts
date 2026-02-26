@@ -2,27 +2,27 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { generators } from '../helpers/random';
 
-const {
-  ethers,
-  helpers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const value = 42n;
 const payload = generators.hexBytes(128);
 const attributes = [];
 
-async function fixture() {
-  const [sender, notAGateway] = await ethers.getSigners();
-
-  const gateway = await ethers.deployContract('$ERC7786GatewayMock');
-  const receiver = await ethers.deployContract('$ERC7786RecipientMock', [gateway]);
-
-  return { sender, notAGateway, gateway, receiver };
-}
-
 // NOTE: here we are only testing the receiver. Failures of the gateway itself (invalid attributes, ...) are out of scope.
 describe('ERC7786Recipient', function () {
+  const {
+    ethers,
+    helpers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [sender, notAGateway] = await ethers.getSigners();
+
+    const gateway = await ethers.deployContract('$ERC7786GatewayMock');
+    const receiver = await ethers.deployContract('$ERC7786RecipientMock', [gateway]);
+
+    return { sender, notAGateway, gateway, receiver };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

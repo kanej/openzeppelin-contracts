@@ -1,20 +1,21 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
-
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
+import { Interface } from 'ethers';
 
 // Replace "+/" with "-_" in the char table, and remove the padding
 // see https://datatracker.ietf.org/doc/html/rfc4648#section-5
 const base64toBase64Url = str => str.replaceAll('+', '-').replaceAll('/', '_').replaceAll('=', '');
 
-async function fixture() {
-  return { mock: await ethers.deployContract('$Base64') };
-}
-
 describe('Base64', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$Base64') };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -55,7 +56,7 @@ describe('Base64', function () {
 
   it('Decode invalid base64 string', async function () {
     const getHexCode = str => ethers.hexlify(ethers.toUtf8Bytes(str));
-    const helper = { interface: ethers.Interface.from(['error InvalidBase64Char(bytes1)']) };
+    const helper = { interface: Interface.from(['error InvalidBase64Char(bytes1)']) };
 
     // ord('*') < 43
     await expect(this.mock.$decode('dGVzd*=='))

@@ -1,38 +1,39 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { id, Typed } from 'ethers';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 import { RevertType } from '../helpers/enums';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [deployer, other] = await ethers.getSigners();
-
-  const factory = await ethers.deployContract('$Create2');
-
-  // Bytecode for deploying a contract that includes a constructor.
-  // We use a vesting wallet, with 3 constructor arguments.
-  const constructorByteCode = await ethers
-    .getContractFactory('VestingWallet')
-    .then(factory => ethers.concat([factory.bytecode, factory.interface.encodeDeploy([other.address, 0n, 0n])]));
-
-  // Bytecode for deploying a contract that has no constructor log.
-  // Here we use the Create2 helper factory.
-  const constructorLessBytecode = await ethers
-    .getContractFactory('$Create2')
-    .then(factory => ethers.concat([factory.bytecode, factory.interface.encodeDeploy([])]));
-
-  const mockFactory = await ethers.getContractFactory('ConstructorMock');
-
-  return { deployer, other, factory, constructorByteCode, constructorLessBytecode, mockFactory };
-}
-
 describe('Create2', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
   const salt = 'salt message';
-  const saltHex = ethers.id(salt);
+  const saltHex = id(salt);
+
+  async function fixture() {
+    const [deployer, other] = await ethers.getSigners();
+
+    const factory = await ethers.deployContract('$Create2');
+
+    // Bytecode for deploying a contract that includes a constructor.
+    // We use a vesting wallet, with 3 constructor arguments.
+    const constructorByteCode = await ethers
+      .getContractFactory('VestingWallet')
+      .then(factory => ethers.concat([factory.bytecode, factory.interface.encodeDeploy([other.address, 0n, 0n])]));
+
+    // Bytecode for deploying a contract that has no constructor log.
+    // Here we use the Create2 helper factory.
+    const constructorLessBytecode = await ethers
+      .getContractFactory('$Create2')
+      .then(factory => ethers.concat([factory.bytecode, factory.interface.encodeDeploy([])]));
+
+    const mockFactory = await ethers.getContractFactory('ConstructorMock');
+
+    return { deployer, other, factory, constructorByteCode, constructorLessBytecode, mockFactory };
+  }
 
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
@@ -53,7 +54,7 @@ describe('Create2', function () {
       const onChainComputed = await this.factory.$computeAddress(
         saltHex,
         ethers.keccak256(this.constructorByteCode),
-        ethers.Typed.address(this.deployer),
+        Typed.address(this.deployer),
       );
       const offChainComputed = ethers.getCreate2Address(
         this.deployer.address,

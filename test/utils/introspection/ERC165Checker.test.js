@@ -1,11 +1,6 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const DUMMY_ID = '0xdeadbeef';
 const DUMMY_ID_2 = '0xcafebabe';
 const DUMMY_ID_3 = '0xdecafbad';
@@ -13,11 +8,16 @@ const DUMMY_UNSUPPORTED_ID = '0xbaddcafe';
 const DUMMY_UNSUPPORTED_ID_2 = '0xbaadcafe';
 const DUMMY_ACCOUNT = '0x1111111111111111111111111111111111111111';
 
-async function fixture() {
-  return { mock: await ethers.deployContract('$ERC165Checker') };
-}
-
 describe('ERC165Checker', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$ERC165Checker') };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

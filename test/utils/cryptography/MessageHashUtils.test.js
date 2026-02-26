@@ -1,18 +1,19 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { Typed, TypedDataEncoder, Wallet } from 'ethers';
 import { domainType, domainSeparator, hashTypedData } from '../../helpers/eip712';
 import { generators } from '../../helpers/random';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  return { mock: await ethers.deployContract('$MessageHashUtils') };
-}
-
 describe('MessageHashUtils', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$MessageHashUtils') };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -45,7 +46,7 @@ describe('MessageHashUtils', function () {
 
   describe('toDataWithIntendedValidatorHash', function () {
     it('returns the digest of `bytes32 messageHash` correctly', async function () {
-      const verifier = ethers.Wallet.createRandom().address;
+      const verifier = Wallet.createRandom().address;
       const message = ethers.randomBytes(32);
       const expectedHash = ethers.solidityPackedKeccak256(
         ['string', 'address', 'bytes32'],
@@ -58,7 +59,7 @@ describe('MessageHashUtils', function () {
     });
 
     it('returns the digest of `bytes memory message` correctly', async function () {
-      const verifier = ethers.Wallet.createRandom().address;
+      const verifier = Wallet.createRandom().address;
       const message = ethers.randomBytes(128);
       const expectedHash = ethers.solidityPackedKeccak256(
         ['string', 'address', 'bytes'],
@@ -71,7 +72,7 @@ describe('MessageHashUtils', function () {
     });
 
     it('version match for bytes32', async function () {
-      const verifier = ethers.Wallet.createRandom().address;
+      const verifier = Wallet.createRandom().address;
       const message = ethers.randomBytes(32);
       const fixed = await this.mock.getFunction('$toDataWithIntendedValidatorHash(address,bytes)')(verifier, message);
       const dynamic = await this.mock.getFunction('$toDataWithIntendedValidatorHash(address,bytes32)')(
@@ -89,7 +90,7 @@ describe('MessageHashUtils', function () {
         name: 'Test',
         version: '1',
         chainId: 1n,
-        verifyingContract: ethers.Wallet.createRandom().address,
+        verifyingContract: Wallet.createRandom().address,
       };
       const structhash = ethers.randomBytes(32);
       const expectedHash = hashTypedData(domain, structhash);
@@ -109,17 +110,15 @@ describe('MessageHashUtils', function () {
 
     for (let fields = 0; fields < 1 << Object.keys(fullDomain).length; ++fields) {
       const domain = Object.fromEntries(Object.entries(fullDomain).filter((_, i) => fields & (1 << i)));
-      const domainTypeName = new ethers.TypedDataEncoder({ EIP712Domain: domainType(domain) }).encodeType(
-        'EIP712Domain',
-      );
+      const domainTypeName = new TypedDataEncoder({ EIP712Domain: domainType(domain) }).encodeType('EIP712Domain');
 
       describe(domainTypeName, function () {
         it('toDomainSeparator(bytes1,string,string,uint256,address,bytes32)', async function () {
           await expect(
             this.mock.$toDomainSeparator(
               ethers.toBeHex(fields),
-              ethers.Typed.string(fullDomain.name),
-              ethers.Typed.string(fullDomain.version),
+              Typed.string(fullDomain.name),
+              Typed.string(fullDomain.version),
               fullDomain.chainId,
               fullDomain.verifyingContract,
               fullDomain.salt,
@@ -131,8 +130,8 @@ describe('MessageHashUtils', function () {
           await expect(
             this.mock.$toDomainSeparator(
               ethers.toBeHex(fields),
-              ethers.Typed.bytes32(ethers.id(fullDomain.name)),
-              ethers.Typed.bytes32(ethers.id(fullDomain.version)),
+              Typed.bytes32(ethers.id(fullDomain.name)),
+              Typed.bytes32(ethers.id(fullDomain.version)),
               fullDomain.chainId,
               fullDomain.verifyingContract,
               fullDomain.salt,

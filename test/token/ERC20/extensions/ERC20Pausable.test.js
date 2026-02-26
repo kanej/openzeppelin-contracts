@@ -1,25 +1,25 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const name = 'My Token';
 const symbol = 'MTKN';
 const initialSupply = 100n;
 
-async function fixture() {
-  const [holder, recipient, approved] = await ethers.getSigners();
-
-  const token = await ethers.deployContract('$ERC20Pausable', [name, symbol]);
-  await token.$_mint(holder, initialSupply);
-
-  return { holder, recipient, approved, token };
-}
-
 describe('ERC20Pausable', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [holder, recipient, approved] = await ethers.getSigners();
+
+    const token = await ethers.deployContract('$ERC20Pausable', [name, symbol]);
+    await token.$_mint(holder, initialSupply);
+
+    return { holder, recipient, approved, token };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

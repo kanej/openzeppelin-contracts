@@ -1,29 +1,27 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { concat, encodeBytes32String, toBeArray, toUtf8String, zeroPadValue } from 'ethers';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-const FALLBACK_SENTINEL = ethers.zeroPadValue('0xFF', 32);
+const FALLBACK_SENTINEL = zeroPadValue('0xFF', 32);
 
 const length = sstr => parseInt(sstr.slice(64), 16);
-const decode = sstr => ethers.toUtf8String(sstr).slice(0, length(sstr));
+const decode = sstr => toUtf8String(sstr).slice(0, length(sstr));
 const encode = str =>
   str.length < 32
-    ? ethers.concat([
-        ethers.encodeBytes32String(str).slice(0, -2),
-        ethers.zeroPadValue(ethers.toBeArray(str.length), 1),
-      ])
+    ? concat([encodeBytes32String(str).slice(0, -2), zeroPadValue(toBeArray(str.length), 1)])
     : FALLBACK_SENTINEL;
 
-async function fixture() {
-  const mock = await ethers.deployContract('$ShortStrings');
-  return { mock };
-}
-
 describe('ShortStrings', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const mock = await ethers.deployContract('$ShortStrings');
+    return { mock };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

@@ -2,11 +2,6 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { shouldBehaveLikeERC2981 } from '../../common/ERC2981.behavior';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const name = 'Non Fungible Token';
 const symbol = 'NFT';
 
@@ -15,17 +10,22 @@ const tokenId2 = 2n;
 const royalty = 200n;
 const salePrice = 1000n;
 
-async function fixture() {
-  const [account1, account2, recipient] = await ethers.getSigners();
-
-  const token = await ethers.deployContract('$ERC721Royalty', [name, symbol]);
-  await token.$_mint(account1, tokenId1);
-  await token.$_mint(account1, tokenId2);
-
-  return { account1, account2, recipient, token };
-}
-
 describe('ERC721Royalty', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [account1, account2, recipient] = await ethers.getSigners();
+
+    const token = await ethers.deployContract('$ERC721Royalty', [name, symbol]);
+    await token.$_mint(account1, tokenId1);
+    await token.$_mint(account1, tokenId2);
+
+    return { account1, account2, recipient, token };
+  }
+
   beforeEach(async function () {
     Object.assign(
       this,

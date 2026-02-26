@@ -1,54 +1,55 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
-
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
+import { MaxUint256, Typed } from 'ethers';
 
 const name = 'ERC20Mock';
 const symbol = 'ERC20Mock';
 const value = 100n;
 const data = '0x12345678';
 
-async function fixture() {
-  const [hasNoCode, owner, receiver, spender, other] = await ethers.getSigners();
-
-  const mock = await ethers.deployContract('$SafeERC20');
-  const erc20ReturnFalseMock = await ethers.deployContract('$ERC20ReturnFalseMock', [name, symbol]);
-  const erc20ReturnTrueMock = await ethers.deployContract('$ERC20', [name, symbol]); // default implementation returns true
-  const erc20NoReturnMock = await ethers.deployContract('$ERC20NoReturnMock', [name, symbol]);
-  const erc20ForceApproveMock = await ethers.deployContract('$ERC20ForceApproveMock', [name, symbol]);
-  const erc1363Mock = await ethers.deployContract('$ERC1363', [name, symbol]);
-  const erc1363ReturnFalseOnErc20Mock = await ethers.deployContract('$ERC1363ReturnFalseOnERC20Mock', [name, symbol]);
-  const erc1363ReturnFalseMock = await ethers.deployContract('$ERC1363ReturnFalseMock', [name, symbol]);
-  const erc1363NoReturnMock = await ethers.deployContract('$ERC1363NoReturnMock', [name, symbol]);
-  const erc1363ForceApproveMock = await ethers.deployContract('$ERC1363ForceApproveMock', [name, symbol]);
-  const erc1363Receiver = await ethers.deployContract('$ERC1363ReceiverMock');
-  const erc1363Spender = await ethers.deployContract('$ERC1363SpenderMock');
-
-  return {
-    hasNoCode,
-    owner,
-    receiver,
-    spender,
-    other,
-    mock,
-    erc20ReturnFalseMock,
-    erc20ReturnTrueMock,
-    erc20NoReturnMock,
-    erc20ForceApproveMock,
-    erc1363Mock,
-    erc1363ReturnFalseOnErc20Mock,
-    erc1363ReturnFalseMock,
-    erc1363NoReturnMock,
-    erc1363ForceApproveMock,
-    erc1363Receiver,
-    erc1363Spender,
-  };
-}
-
 describe('SafeERC20', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [hasNoCode, owner, receiver, spender, other] = await ethers.getSigners();
+
+    const mock = await ethers.deployContract('$SafeERC20');
+    const erc20ReturnFalseMock = await ethers.deployContract('$ERC20ReturnFalseMock', [name, symbol]);
+    const erc20ReturnTrueMock = await ethers.deployContract('$ERC20', [name, symbol]); // default implementation returns true
+    const erc20NoReturnMock = await ethers.deployContract('$ERC20NoReturnMock', [name, symbol]);
+    const erc20ForceApproveMock = await ethers.deployContract('$ERC20ForceApproveMock', [name, symbol]);
+    const erc1363Mock = await ethers.deployContract('$ERC1363', [name, symbol]);
+    const erc1363ReturnFalseOnErc20Mock = await ethers.deployContract('$ERC1363ReturnFalseOnERC20Mock', [name, symbol]);
+    const erc1363ReturnFalseMock = await ethers.deployContract('$ERC1363ReturnFalseMock', [name, symbol]);
+    const erc1363NoReturnMock = await ethers.deployContract('$ERC1363NoReturnMock', [name, symbol]);
+    const erc1363ForceApproveMock = await ethers.deployContract('$ERC1363ForceApproveMock', [name, symbol]);
+    const erc1363Receiver = await ethers.deployContract('$ERC1363ReceiverMock');
+    const erc1363Spender = await ethers.deployContract('$ERC1363SpenderMock');
+
+    return {
+      hasNoCode,
+      owner,
+      receiver,
+      spender,
+      other,
+      mock,
+      erc20ReturnFalseMock,
+      erc20ReturnTrueMock,
+      erc20NoReturnMock,
+      erc20ForceApproveMock,
+      erc1363Mock,
+      erc1363ReturnFalseOnErc20Mock,
+      erc1363ReturnFalseMock,
+      erc1363NoReturnMock,
+      erc1363ForceApproveMock,
+      erc1363Receiver,
+      erc1363Spender,
+    };
+  }
+
   before(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -201,7 +202,7 @@ describe('SafeERC20', function () {
       it('cannot transferAndCall to an EOA directly', async function () {
         await this.token.$_mint(this.owner, 100n);
 
-        await expect(this.token.connect(this.owner).transferAndCall(this.receiver, value, ethers.Typed.bytes(data)))
+        await expect(this.token.connect(this.owner).transferAndCall(this.receiver, value, Typed.bytes(data)))
           .to.be.revertedWithCustomError(this.token, 'ERC1363InvalidReceiver')
           .withArgs(this.receiver);
       });
@@ -376,7 +377,7 @@ function shouldOnlyRevertOnErrors() {
     beforeEach(async function () {
       await this.token.$_mint(this.owner, 100n);
       await this.token.$_mint(this.mock, 100n);
-      await this.token.$_approve(this.owner, this.mock, ethers.MaxUint256);
+      await this.token.$_approve(this.owner, this.mock, MaxUint256);
     });
 
     it("doesn't revert on transfer", async function () {

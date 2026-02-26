@@ -1,18 +1,18 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
-
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [holder] = await ethers.getSigners();
-  const token = await ethers.deployContract('$ERC1155Supply', ['https://token-cdn-domain/{id}.json']);
-  return { token, holder };
-}
+import { Typed } from 'ethers';
 
 describe('ERC1155Supply', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [holder] = await ethers.getSigners();
+    const token = await ethers.deployContract('$ERC1155Supply', ['https://token-cdn-domain/{id}.json']);
+    return { token, holder };
+  }
   const firstTokenId = 37n;
   const firstTokenValue = 42n;
   const secondTokenId = 19842n;
@@ -28,7 +28,7 @@ describe('ERC1155Supply', function () {
     });
 
     it('totalSupply', async function () {
-      expect(await this.token.totalSupply(ethers.Typed.uint256(firstTokenId))).to.equal(0n);
+      expect(await this.token.totalSupply(Typed.uint256(firstTokenId))).to.equal(0n);
       expect(await this.token.totalSupply()).to.equal(0n);
     });
   });
@@ -44,7 +44,7 @@ describe('ERC1155Supply', function () {
       });
 
       it('totalSupply', async function () {
-        expect(await this.token.totalSupply(ethers.Typed.uint256(firstTokenId))).to.equal(firstTokenValue);
+        expect(await this.token.totalSupply(Typed.uint256(firstTokenId))).to.equal(firstTokenValue);
         expect(await this.token.totalSupply()).to.equal(firstTokenValue);
       });
     });
@@ -65,8 +65,8 @@ describe('ERC1155Supply', function () {
       });
 
       it('totalSupply', async function () {
-        expect(await this.token.totalSupply(ethers.Typed.uint256(firstTokenId))).to.equal(firstTokenValue);
-        expect(await this.token.totalSupply(ethers.Typed.uint256(secondTokenId))).to.equal(secondTokenValue);
+        expect(await this.token.totalSupply(Typed.uint256(firstTokenId))).to.equal(firstTokenValue);
+        expect(await this.token.totalSupply(Typed.uint256(secondTokenId))).to.equal(secondTokenValue);
         expect(await this.token.totalSupply()).to.equal(firstTokenValue + secondTokenValue);
       });
     });
@@ -84,7 +84,7 @@ describe('ERC1155Supply', function () {
       });
 
       it('totalSupply', async function () {
-        expect(await this.token.totalSupply(ethers.Typed.uint256(firstTokenId))).to.equal(0n);
+        expect(await this.token.totalSupply(Typed.uint256(firstTokenId))).to.equal(0n);
         expect(await this.token.totalSupply()).to.equal(0n);
       });
     });
@@ -106,8 +106,8 @@ describe('ERC1155Supply', function () {
       });
 
       it('totalSupply', async function () {
-        expect(await this.token.totalSupply(ethers.Typed.uint256(firstTokenId))).to.equal(0n);
-        expect(await this.token.totalSupply(ethers.Typed.uint256(secondTokenId))).to.equal(0n);
+        expect(await this.token.totalSupply(Typed.uint256(firstTokenId))).to.equal(0n);
+        expect(await this.token.totalSupply(Typed.uint256(secondTokenId))).to.equal(0n);
         expect(await this.token.totalSupply()).to.equal(0n);
       });
     });
@@ -116,7 +116,7 @@ describe('ERC1155Supply', function () {
   describe('other', function () {
     it('supply unaffected by no-op', async function () {
       await this.token.$_update(ethers.ZeroAddress, ethers.ZeroAddress, [firstTokenId], [firstTokenValue]);
-      expect(await this.token.totalSupply(ethers.Typed.uint256(firstTokenId))).to.equal(0n);
+      expect(await this.token.totalSupply(Typed.uint256(firstTokenId))).to.equal(0n);
       expect(await this.token.totalSupply()).to.equal(0n);
     });
   });

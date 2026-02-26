@@ -2,32 +2,32 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { MAX_UINT32, MAX_UINT64 } from '../../helpers/constants';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [user, other] = await ethers.getSigners();
-
-  const mock = await ethers.deployContract('$AuthorityUtils');
-  const notAuthorityMock = await ethers.deployContract('NotAuthorityMock');
-  const authorityNoDelayMock = await ethers.deployContract('AuthorityNoDelayMock');
-  const authorityDelayMock = await ethers.deployContract('AuthorityDelayMock');
-  const authorityNoResponse = await ethers.deployContract('AuthorityNoResponse');
-
-  return {
-    user,
-    other,
-    mock,
-    notAuthorityMock,
-    authorityNoDelayMock,
-    authorityDelayMock,
-    authorityNoResponse,
-  };
-}
-
 describe('AuthorityUtils', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [user, other] = await ethers.getSigners();
+
+    const mock = await ethers.deployContract('$AuthorityUtils');
+    const notAuthorityMock = await ethers.deployContract('NotAuthorityMock');
+    const authorityNoDelayMock = await ethers.deployContract('AuthorityNoDelayMock');
+    const authorityDelayMock = await ethers.deployContract('AuthorityDelayMock');
+    const authorityNoResponse = await ethers.deployContract('AuthorityNoResponse');
+
+    return {
+      user,
+      other,
+      mock,
+      notAuthorityMock,
+      authorityNoDelayMock,
+      authorityDelayMock,
+      authorityNoResponse,
+    };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

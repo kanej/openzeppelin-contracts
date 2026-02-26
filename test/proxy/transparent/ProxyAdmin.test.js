@@ -2,31 +2,35 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { ImplementationLabel } from '../../helpers/storage';
 
-const {
-  ethers,
-  helpers: { storage },
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [admin, other] = await ethers.getSigners();
-
-  const v1 = await ethers.deployContract('DummyImplementation');
-  const v2 = await ethers.deployContract('DummyImplementationV2');
-
-  const proxy = await ethers
-    .deployContract('TransparentUpgradeableProxy', [v1, admin, v1.interface.encodeFunctionData('initializeNonPayable')])
-    .then(instance => ethers.getContractAt('ITransparentUpgradeableProxy', instance));
-
-  const proxyAdmin = await ethers.getContractAt(
-    'ProxyAdmin',
-    ethers.getCreateAddress({ from: proxy.target, nonce: 1n }),
-  );
-
-  return { admin, other, v1, v2, proxy, proxyAdmin };
-}
-
 describe('ProxyAdmin', function () {
+  const {
+    ethers,
+    helpers: { storage },
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [admin, other] = await ethers.getSigners();
+
+    const v1 = await ethers.deployContract('DummyImplementation');
+    const v2 = await ethers.deployContract('DummyImplementationV2');
+
+    const proxy = await ethers
+      .deployContract('TransparentUpgradeableProxy', [
+        v1,
+        admin,
+        v1.interface.encodeFunctionData('initializeNonPayable'),
+      ])
+      .then(instance => ethers.getContractAt('ITransparentUpgradeableProxy', instance));
+
+    const proxyAdmin = await ethers.getContractAt(
+      'ProxyAdmin',
+      ethers.getCreateAddress({ from: proxy.target, nonce: 1n }),
+    );
+
+    return { admin, other, v1, v2, proxy, proxyAdmin };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

@@ -1,13 +1,9 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { toBigInt } from 'ethers';
 import { generators } from '../helpers/random';
 import { capitalize } from '../../scripts/helpers';
 import { TYPES } from '../../scripts/generate/templates/Arrays.opts';
-
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
 
 // See https://en.cppreference.com/w/cpp/algorithm/lower_bound
 const lowerBound = (array, value) => {
@@ -22,14 +18,19 @@ const upperBound = (array, value) => {
 };
 
 const bigintSign = x => (x > 0n ? 1 : x < 0n ? -1 : 0);
-const comparator = (a, b) => bigintSign(ethers.toBigInt(a) - ethers.toBigInt(b));
+const comparator = (a, b) => bigintSign(toBigInt(a) - toBigInt(b));
 const hasDuplicates = array => array.some((v, i) => array.indexOf(v) != i);
 
-async function fixture() {
-  return { mock: await ethers.deployContract('$Arrays') };
-}
-
 describe('Arrays', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$Arrays') };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

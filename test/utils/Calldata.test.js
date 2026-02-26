@@ -1,16 +1,16 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  return { mock: await ethers.deployContract('$Calldata') };
-}
-
 describe('Calldata utilities', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$Calldata') };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

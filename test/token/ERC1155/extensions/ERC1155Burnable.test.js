@@ -1,25 +1,25 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const ids = [42n, 1137n];
 const values = [3000n, 9902n];
 
-async function fixture() {
-  const [holder, operator, other] = await ethers.getSigners();
-
-  const token = await ethers.deployContract('$ERC1155Burnable', ['https://token-cdn-domain/{id}.json']);
-  await token.$_mint(holder, ids[0], values[0], '0x');
-  await token.$_mint(holder, ids[1], values[1], '0x');
-
-  return { token, holder, operator, other };
-}
-
 describe('ERC1155Burnable', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [holder, operator, other] = await ethers.getSigners();
+
+    const token = await ethers.deployContract('$ERC1155Burnable', ['https://token-cdn-domain/{id}.json']);
+    await token.$_mint(holder, ids[0], values[0], '0x');
+    await token.$_mint(holder, ids[1], values[1], '0x');
+
+    return { token, holder, operator, other };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

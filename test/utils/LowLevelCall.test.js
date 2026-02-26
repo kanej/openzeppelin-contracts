@@ -1,27 +1,28 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { id, Interface, parseEther, Typed } from 'ethers';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-const value = ethers.parseEther('1');
-const returnValue1 = ethers.id('hello');
-const returnValue2 = ethers.id('world');
-const storageSlot = ethers.id('location');
-const storageValue = ethers.id('data');
-
-async function fixture() {
-  const [account] = await ethers.getSigners();
-
-  const mock = await ethers.deployContract('$LowLevelCall');
-  const target = await ethers.deployContract('CallReceiverMock');
-
-  return { account, mock, target };
-}
+const value = parseEther('1');
+const returnValue1 = id('hello');
+const returnValue2 = id('world');
+const storageSlot = id('location');
+const storageValue = id('data');
 
 describe('LowLevelCall', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [account] = await ethers.getSigners();
+
+    const mock = await ethers.deployContract('$LowLevelCall');
+    const target = await ethers.deployContract('CallReceiverMock');
+
+    return { account, mock, target };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -40,7 +41,7 @@ describe('LowLevelCall', function () {
 
         const tx = this.mock.$callNoReturn(
           this.target,
-          ethers.Typed.uint256(value),
+          Typed.uint256(value),
           this.target.interface.encodeFunctionData('mockFunction'),
         );
         await expect(tx).to.changeEtherBalances(ethers, [this.mock, this.target], [-value, value]);
@@ -50,7 +51,7 @@ describe('LowLevelCall', function () {
       it("calls the requested function and returns false if the caller doesn't have enough balance", async function () {
         const tx = this.mock.$callNoReturn(
           this.target,
-          ethers.Typed.uint256(value),
+          Typed.uint256(value),
           this.target.interface.encodeFunctionData('mockFunction'),
         );
         await expect(tx).to.changeEtherBalances(ethers, [this.mock, this.target], [0n, 0n]);
@@ -85,7 +86,7 @@ describe('LowLevelCall', function () {
 
         const tx = this.mock.$callReturn64Bytes(
           this.target,
-          ethers.Typed.uint256(value),
+          Typed.uint256(value),
           this.target.interface.encodeFunctionData('mockFunctionWithArgsReturn', [returnValue1, returnValue2]),
         );
         await expect(tx).to.changeEtherBalances(ethers, [this.mock, this.target], [-value, value]);
@@ -97,7 +98,7 @@ describe('LowLevelCall', function () {
       it("calls the requested function and returns false if the caller doesn't have enough balance", async function () {
         const tx = this.mock.$callReturn64Bytes(
           this.target,
-          ethers.Typed.uint256(value),
+          Typed.uint256(value),
           this.target.interface.encodeFunctionData('mockFunctionWithArgsReturn', [returnValue1, returnValue2]),
         );
         await expect(tx).to.changeEtherBalances(ethers, [this.mock, this.target], [0n, 0n]);
@@ -118,7 +119,7 @@ describe('LowLevelCall', function () {
       });
 
       it('returns the first 64 bytes of the revert reason or custom error if the subcall reverts', async function () {
-        const encoded = ethers.Interface.from(['error Error(string)']).encodeErrorResult('Error', [
+        const encoded = Interface.from(['error Error(string)']).encodeErrorResult('Error', [
           'CallReceiverMock: reverting',
         ]);
 
@@ -176,7 +177,7 @@ describe('LowLevelCall', function () {
       });
 
       it('returns the first 64 bytes of the revert reason or custom error if the subcall reverts', async function () {
-        const encoded = ethers.Interface.from(['error Error(string)']).encodeErrorResult('Error', [
+        const encoded = Interface.from(['error Error(string)']).encodeErrorResult('Error', [
           'CallReceiverMock: reverting',
         ]);
 

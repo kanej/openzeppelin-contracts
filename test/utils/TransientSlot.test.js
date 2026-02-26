@@ -1,14 +1,10 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { id } from 'ethers';
 import { generators } from '../helpers/random';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-const slot = ethers.id('some.storage.slot');
-const otherSlot = ethers.id('some.other.storage.slot');
+const slot = id('some.storage.slot');
+const otherSlot = id('some.other.storage.slot');
 
 // Non-value types are not supported by the `TransientSlot` library.
 const TYPES = [
@@ -19,11 +15,16 @@ const TYPES = [
   { name: 'Int256', type: 'int256', value: generators.int256(), zero: generators.int256.zero },
 ];
 
-async function fixture() {
-  return { mock: await ethers.deployContract('TransientSlotMock') };
-}
-
 describe('TransientSlot', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('TransientSlotMock') };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

@@ -1,13 +1,14 @@
 import { network } from 'hardhat';
+import { Wallet } from 'ethers';
 import { shouldBehaveLikeERC1271 } from './ERC1271.behavior';
 import { NonNativeSigner, P256SigningKey, RSASHA256SigningKey } from '../../helpers/signers';
 
-const { ethers } = await network.connect();
-
 describe('ERC7739', function () {
+  const { ethers } = network.mocha.connectOnBefore();
+
   describe('for an ECDSA signer', function () {
     before(async function () {
-      this.signer = ethers.Wallet.createRandom();
+      this.signer = Wallet.createRandom();
       this.mock = await ethers.deployContract('$ERC7739ECDSAMock', ['ERC7739ECDSA', '1', this.signer.address]);
     });
 

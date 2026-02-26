@@ -2,9 +2,9 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { MAX_UINT64 } from '../../helpers/constants';
 
-const { ethers } = await network.connect();
-
 describe('Initializable', function () {
+  const { ethers } = network.mocha.connectOnBefore();
+
   describe('basic testing without inheritance', function () {
     beforeEach('deploying', async function () {
       this.mock = await ethers.deployContract('InitializableMock');

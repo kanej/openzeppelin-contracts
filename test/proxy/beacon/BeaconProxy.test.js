@@ -2,26 +2,26 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { BeaconLabel } from '../../helpers/storage';
 
-const {
-  ethers,
-  helpers: { storage },
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [admin, other] = await ethers.getSigners();
-
-  const v1 = await ethers.deployContract('DummyImplementation');
-  const v2 = await ethers.deployContract('DummyImplementationV2');
-  const factory = await ethers.getContractFactory('BeaconProxy');
-  const beacon = await ethers.deployContract('UpgradeableBeacon', [v1, admin]);
-
-  const newBeaconProxy = (beacon, data, opts = {}) => factory.deploy(beacon, data, opts);
-
-  return { admin, other, factory, beacon, v1, v2, newBeaconProxy };
-}
-
 describe('BeaconProxy', function () {
+  const {
+    ethers,
+    helpers: { storage },
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [admin, other] = await ethers.getSigners();
+
+    const v1 = await ethers.deployContract('DummyImplementation');
+    const v2 = await ethers.deployContract('DummyImplementationV2');
+    const factory = await ethers.getContractFactory('BeaconProxy');
+    const beacon = await ethers.deployContract('UpgradeableBeacon', [v1, admin]);
+
+    const newBeaconProxy = (beacon, data, opts = {}) => factory.deploy(beacon, data, opts);
+
+    return { admin, other, factory, beacon, v1, v2, newBeaconProxy };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

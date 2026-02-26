@@ -1,22 +1,22 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [admin, other] = await ethers.getSigners();
-
-  const v1 = await ethers.deployContract('Implementation1');
-  const v2 = await ethers.deployContract('Implementation2');
-  const beacon = await ethers.deployContract('UpgradeableBeacon', [v1, admin]);
-
-  return { admin, other, beacon, v1, v2 };
-}
-
 describe('UpgradeableBeacon', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [admin, other] = await ethers.getSigners();
+
+    const v1 = await ethers.deployContract('Implementation1');
+    const v2 = await ethers.deployContract('Implementation2');
+    const beacon = await ethers.deployContract('UpgradeableBeacon', [v1, admin]);
+
+    return { admin, other, beacon, v1, v2 };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

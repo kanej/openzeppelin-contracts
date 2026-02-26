@@ -1,16 +1,16 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  return { bitmap: await ethers.deployContract('$BitMaps') };
-}
-
 describe('BitMap', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { bitmap: await ethers.deployContract('$BitMaps') };
+  }
+
   const keyA = 7891n;
   const keyB = 451n;
   const keyC = 9592328n;

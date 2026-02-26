@@ -1,36 +1,37 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
-
-const {
-  ethers,
-  helpers: { impersonate },
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [admin, receiver, other] = await ethers.getSigners();
-
-  const mock = await ethers.deployContract('$RelayedCall');
-  const computeRelayerAddress = (salt = ethers.ZeroHash) =>
-    ethers.getCreate2Address(
-      mock.target,
-      salt,
-      ethers.keccak256(
-        ethers.concat([
-          '0x60475f8160095f39f373',
-          mock.target,
-          '0x331460133611166022575f5ffd5b6014360360145f375f5f601436035f345f3560601c5af13d5f5f3e5f3d91604557fd5bf3',
-        ]),
-      ),
-    );
-
-  const authority = await ethers.deployContract('$AccessManager', [admin]);
-  const target = await ethers.deployContract('$AccessManagedTarget', [authority]);
-
-  return { mock, target, receiver, other, computeRelayerAddress };
-}
+import { Typed } from 'ethers';
 
 describe('RelayedCall', function () {
+  const {
+    ethers,
+    helpers: { impersonate },
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [admin, receiver, other] = await ethers.getSigners();
+
+    const mock = await ethers.deployContract('$RelayedCall');
+    const computeRelayerAddress = (salt = ethers.ZeroHash) =>
+      ethers.getCreate2Address(
+        mock.target,
+        salt,
+        ethers.keccak256(
+          ethers.concat([
+            '0x60475f8160095f39f373',
+            mock.target,
+            '0x331460133611166022575f5ffd5b6014360360145f375f5f601436035f345f3560601c5af13d5f5f3e5f3d91604557fd5bf3',
+          ]),
+        ),
+      );
+
+    const authority = await ethers.deployContract('$AccessManager', [admin]);
+    const target = await ethers.deployContract('$AccessManagedTarget', [authority]);
+
+    return { mock, target, receiver, other, computeRelayerAddress };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -55,8 +56,8 @@ describe('RelayedCall', function () {
     describe('relayed call', function () {
       it('target success', async function () {
         const tx = this.mock.$relayCall(
-          ethers.Typed.address(this.target),
-          ethers.Typed.bytes(this.target.interface.encodeFunctionData('fnUnrestricted', [])),
+          Typed.address(this.target),
+          Typed.bytes(this.target.interface.encodeFunctionData('fnUnrestricted', [])),
         );
         await expect(tx)
           .to.emit(this.target, 'CalledUnrestricted')
@@ -72,11 +73,7 @@ describe('RelayedCall', function () {
         await this.other.sendTransaction({ to: this.mock.target, value });
 
         // perform relayed call
-        const tx = this.mock.$relayCall(
-          ethers.Typed.address(this.receiver),
-          ethers.Typed.uint256(value),
-          ethers.Typed.bytes('0x'),
-        );
+        const tx = this.mock.$relayCall(Typed.address(this.receiver), Typed.uint256(value), Typed.bytes('0x'));
 
         await expect(tx).to.changeEtherBalances(ethers, [this.mock, this.relayer, this.receiver], [-value, 0n, value]);
         await expect(tx).to.emit(this.mock, 'return$relayCall_address_uint256_bytes').withArgs(true, '0x');
@@ -84,8 +81,8 @@ describe('RelayedCall', function () {
 
       it('target revert', async function () {
         const tx = this.mock.$relayCall(
-          ethers.Typed.address(this.target),
-          ethers.Typed.bytes(this.target.interface.encodeFunctionData('fnRestricted', [])),
+          Typed.address(this.target),
+          Typed.bytes(this.target.interface.encodeFunctionData('fnRestricted', [])),
         );
 
         await expect(tx)
@@ -136,14 +133,14 @@ describe('RelayedCall', function () {
       await expect(ethers.provider.getCode(this.relayer)).to.eventually.equal('0x');
 
       // First call performs deployment
-      await expect(this.mock.$getRelayer(ethers.Typed.bytes32(this.salt)))
+      await expect(this.mock.$getRelayer(Typed.bytes32(this.salt)))
         .to.emit(this.mock, 'return$getRelayer_bytes32')
         .withArgs(this.relayer);
 
       await expect(ethers.provider.getCode(this.relayer)).to.eventually.not.equal('0x');
 
       // Following calls use the same relayer
-      await expect(this.mock.$getRelayer(ethers.Typed.bytes32(this.salt)))
+      await expect(this.mock.$getRelayer(Typed.bytes32(this.salt)))
         .to.emit(this.mock, 'return$getRelayer_bytes32')
         .withArgs(this.relayer);
     });
@@ -151,9 +148,9 @@ describe('RelayedCall', function () {
     describe('relayed call', function () {
       it('target success', async function () {
         const tx = this.mock.$relayCall(
-          ethers.Typed.address(this.target),
-          ethers.Typed.bytes(this.target.interface.encodeFunctionData('fnUnrestricted', [])),
-          ethers.Typed.bytes32(this.salt),
+          Typed.address(this.target),
+          Typed.bytes(this.target.interface.encodeFunctionData('fnUnrestricted', [])),
+          Typed.bytes32(this.salt),
         );
         await expect(tx)
           .to.emit(this.target, 'CalledUnrestricted')
@@ -170,10 +167,10 @@ describe('RelayedCall', function () {
 
         // perform relayed call
         const tx = this.mock.$relayCall(
-          ethers.Typed.address(this.receiver),
-          ethers.Typed.uint256(value),
-          ethers.Typed.bytes('0x'),
-          ethers.Typed.bytes32(this.salt),
+          Typed.address(this.receiver),
+          Typed.uint256(value),
+          Typed.bytes('0x'),
+          Typed.bytes32(this.salt),
         );
 
         await expect(tx).to.changeEtherBalances(ethers, [this.mock, this.relayer, this.receiver], [-value, 0n, value]);
@@ -182,9 +179,9 @@ describe('RelayedCall', function () {
 
       it('target revert', async function () {
         const tx = this.mock.$relayCall(
-          ethers.Typed.address(this.target),
-          ethers.Typed.bytes(this.target.interface.encodeFunctionData('fnRestricted', [])),
-          ethers.Typed.bytes32(this.salt),
+          Typed.address(this.target),
+          Typed.bytes(this.target.interface.encodeFunctionData('fnRestricted', [])),
+          Typed.bytes32(this.salt),
         );
 
         await expect(tx)
@@ -195,7 +192,7 @@ describe('RelayedCall', function () {
 
     it('direct call to the relayer', async function () {
       // deploy relayer
-      await this.mock.$getRelayer(ethers.Typed.bytes32(this.salt));
+      await this.mock.$getRelayer(Typed.bytes32(this.salt));
 
       // unauthorized caller
       await expect(
@@ -205,7 +202,7 @@ describe('RelayedCall', function () {
 
     it('input format', async function () {
       // deploy relayer
-      await this.mock.$getRelayer(ethers.Typed.bytes32(this.salt));
+      await this.mock.$getRelayer(Typed.bytes32(this.salt));
 
       // impersonate mock to pass caller checks
       const mockAsWallet = await impersonate(this.mock.target);
