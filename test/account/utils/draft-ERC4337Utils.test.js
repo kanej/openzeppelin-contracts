@@ -1,27 +1,28 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { Typed, ZeroAddress } from 'ethers';
 import { MAX_UINT48 } from '../../helpers/constants';
 import { packValidationData, UserOperation } from '../../helpers/erc4337';
 import { ValidationRange } from '../../helpers/enums';
 
-const {
-  ethers,
-  helpers: { time },
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const ADDRESS_ONE = '0x0000000000000000000000000000000000000001';
 
-async function fixture() {
-  const [authorizer, sender, factory, paymaster] = await ethers.getSigners();
-  const utils = await ethers.deployContract('$ERC4337Utils');
-  const SIG_VALIDATION_SUCCESS = await utils.$SIG_VALIDATION_SUCCESS();
-  const SIG_VALIDATION_FAILED = await utils.$SIG_VALIDATION_FAILED();
-
-  return { utils, authorizer, sender, factory, paymaster, SIG_VALIDATION_SUCCESS, SIG_VALIDATION_FAILED };
-}
-
 describe('ERC4337Utils', function () {
+  const {
+    ethers,
+    helpers: { time },
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [authorizer, sender, factory, paymaster] = await ethers.getSigners();
+    const utils = await ethers.deployContract('$ERC4337Utils');
+    const SIG_VALIDATION_SUCCESS = await utils.$SIG_VALIDATION_SUCCESS();
+    const SIG_VALIDATION_FAILED = await utils.$SIG_VALIDATION_FAILED();
+
+    return { utils, authorizer, sender, factory, paymaster, SIG_VALIDATION_SUCCESS, SIG_VALIDATION_FAILED };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -136,15 +137,15 @@ describe('ERC4337Utils', function () {
       const validationData = packValidationData(validAfter, validUntil, authorizer);
 
       await expect(
-        this.utils.$packValidationData(ethers.Typed.address(authorizer), validAfter, validUntil),
+        this.utils.$packValidationData(Typed.address(authorizer), validAfter, validUntil),
       ).to.eventually.equal(validationData);
 
       await expect(
-        this.utils.$packValidationData(ethers.Typed.address(authorizer), validAfter | 0x800000000000n, validUntil),
+        this.utils.$packValidationData(Typed.address(authorizer), validAfter | 0x800000000000n, validUntil),
       ).to.eventually.equal(validationData);
 
       await expect(
-        this.utils.$packValidationData(ethers.Typed.address(authorizer), validAfter, validUntil | 0x800000000000n),
+        this.utils.$packValidationData(Typed.address(authorizer), validAfter, validUntil | 0x800000000000n),
       ).to.eventually.equal(validationData);
     });
 
@@ -155,7 +156,7 @@ describe('ERC4337Utils', function () {
       const validationData = packValidationData(validAfter, validUntil, authorizer);
 
       await expect(
-        this.utils.$packValidationData(ethers.Typed.address(authorizer), validAfter, validUntil),
+        this.utils.$packValidationData(Typed.address(authorizer), validAfter, validUntil),
       ).to.eventually.equal(validationData);
     });
 
@@ -167,10 +168,10 @@ describe('ERC4337Utils', function () {
 
       await expect(
         this.utils.$packValidationData(
-          ethers.Typed.address(authorizer),
+          Typed.address(authorizer),
           validAfter,
           validUntil,
-          ethers.Typed.uint8(ValidationRange.Timestamp),
+          Typed.uint8(ValidationRange.Timestamp),
         ),
       ).to.eventually.equal(validationData);
     });
@@ -183,10 +184,10 @@ describe('ERC4337Utils', function () {
 
       await expect(
         this.utils.$packValidationData(
-          ethers.Typed.address(authorizer),
+          Typed.address(authorizer),
           validAfter,
           validUntil,
-          ethers.Typed.uint8(ValidationRange.Block),
+          Typed.uint8(ValidationRange.Block),
         ),
       ).to.eventually.equal(validationData);
     });
@@ -197,16 +198,16 @@ describe('ERC4337Utils', function () {
       const validUntil = 0x23456789n;
       const validationData = packValidationData(validAfter, validUntil, false);
 
+      await expect(this.utils.$packValidationData(Typed.bool(success), validAfter, validUntil)).to.eventually.equal(
+        validationData,
+      );
+
       await expect(
-        this.utils.$packValidationData(ethers.Typed.bool(success), validAfter, validUntil),
+        this.utils.$packValidationData(Typed.bool(success), validAfter | 0x800000000000n, validUntil),
       ).to.eventually.equal(validationData);
 
       await expect(
-        this.utils.$packValidationData(ethers.Typed.bool(success), validAfter | 0x800000000000n, validUntil),
-      ).to.eventually.equal(validationData);
-
-      await expect(
-        this.utils.$packValidationData(ethers.Typed.bool(success), validAfter, validUntil | 0x800000000000n),
+        this.utils.$packValidationData(Typed.bool(success), validAfter, validUntil | 0x800000000000n),
       ).to.eventually.equal(validationData);
     });
 
@@ -216,9 +217,9 @@ describe('ERC4337Utils', function () {
       const validUntil = 0x23456789n | 0x800000000000n;
       const validationData = packValidationData(validAfter, validUntil, false);
 
-      await expect(
-        this.utils.$packValidationData(ethers.Typed.bool(success), validAfter, validUntil),
-      ).to.eventually.equal(validationData);
+      await expect(this.utils.$packValidationData(Typed.bool(success), validAfter, validUntil)).to.eventually.equal(
+        validationData,
+      );
     });
 
     it('packs the validation data (bool) with explicit timestamp', async function () {
@@ -229,10 +230,10 @@ describe('ERC4337Utils', function () {
 
       await expect(
         this.utils.$packValidationData(
-          ethers.Typed.bool(success),
+          Typed.bool(success),
           validAfter,
           validUntil,
-          ethers.Typed.uint8(ValidationRange.Timestamp),
+          Typed.uint8(ValidationRange.Timestamp),
         ),
       ).to.eventually.equal(validationData);
     });
@@ -244,26 +245,21 @@ describe('ERC4337Utils', function () {
       const validationData = packValidationData(validAfter, validUntil, false, ValidationRange.Block);
 
       await expect(
-        this.utils.$packValidationData(
-          ethers.Typed.bool(success),
-          validAfter,
-          validUntil,
-          ethers.Typed.uint8(ValidationRange.Block),
-        ),
+        this.utils.$packValidationData(Typed.bool(success), validAfter, validUntil, Typed.uint8(ValidationRange.Block)),
       ).to.eventually.equal(validationData);
     });
 
     it('packing reproduced canonical values', async function () {
-      await expect(this.utils.$packValidationData(ethers.Typed.bool(true), 0n, 0n)).to.eventually.equal(
+      await expect(this.utils.$packValidationData(Typed.bool(true), 0n, 0n)).to.eventually.equal(
         this.SIG_VALIDATION_SUCCESS,
       );
-      await expect(this.utils.$packValidationData(ethers.Typed.bool(false), 0n, 0n)).to.eventually.equal(
+      await expect(this.utils.$packValidationData(Typed.bool(false), 0n, 0n)).to.eventually.equal(
         this.SIG_VALIDATION_FAILED,
       );
-      await expect(
-        this.utils.$packValidationData(ethers.Typed.address(ethers.ZeroAddress), 0n, 0n),
-      ).to.eventually.equal(this.SIG_VALIDATION_SUCCESS);
-      await expect(this.utils.$packValidationData(ethers.Typed.address(ADDRESS_ONE), 0n, 0n)).to.eventually.equal(
+      await expect(this.utils.$packValidationData(Typed.address(ethers.ZeroAddress), 0n, 0n)).to.eventually.equal(
+        this.SIG_VALIDATION_SUCCESS,
+      );
+      await expect(this.utils.$packValidationData(Typed.address(ADDRESS_ONE), 0n, 0n)).to.eventually.equal(
         this.SIG_VALIDATION_FAILED,
       );
     });
@@ -334,8 +330,8 @@ describe('ERC4337Utils', function () {
     });
 
     for (const [authorizer1, authorizer2] of [
-      [ethers.ZeroAddress, '0xbf023313b891fd6000544b79e353323aa94a4f29'],
-      ['0xbf023313b891fd6000544b79e353323aa94a4f29', ethers.ZeroAddress],
+      [ZeroAddress, '0xbf023313b891fd6000544b79e353323aa94a4f29'],
+      ['0xbf023313b891fd6000544b79e353323aa94a4f29', ZeroAddress],
     ]) {
       it('returns SIG_VALIDATION_FAILURE if one of the authorizers is not address(0)', async function () {
         const validationData1 = packValidationData(validAfter1, validUntil1, authorizer1);
@@ -444,9 +440,10 @@ describe('ERC4337Utils', function () {
     });
   });
 
-  describe('hash', async function () {
-    for (const [version, instance] of Object.entries(ethers.predeploy.entrypoint)) {
+  describe('hash', function () {
+    for (const version of ['v07', 'v08', 'v09']) {
       it(`returns the operation hash for entrypoint ${version}`, async function () {
+        const instance = ethers.predeploy.entrypoint[version];
         const userOp = new UserOperation({ sender: this.sender, nonce: 1 });
         const expected = await userOp.hash(instance);
 
