@@ -32,75 +32,75 @@ import {
   testAsGetAccess,
 } from './AccessManager.predicate';
 
-const connection = await network.connect();
-const {
-  ethers,
-  helpers: { impersonate, time },
-  networkHelpers: { loadFixture },
-} = connection;
+describe('AccessManager', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    helpers: { impersonate, time },
+    networkHelpers: { loadFixture },
+  } = connection;
 
-async function fixture() {
-  const [admin, roleAdmin, roleGuardian, member, user, other] = await ethers.getSigners();
+  async function fixture() {
+    const [admin, roleAdmin, roleGuardian, member, user, other] = await ethers.getSigners();
 
-  // Build roles
-  const roles = buildBaseRoles();
+    // Build roles
+    const roles = buildBaseRoles();
 
-  // Add members
-  roles.ADMIN.members = [admin];
-  roles.SOME_ADMIN.members = [roleAdmin];
-  roles.SOME_GUARDIAN.members = [roleGuardian];
-  roles.SOME.members = [member];
-  roles.PUBLIC.members = [admin, roleAdmin, roleGuardian, member, user, other];
+    // Add members
+    roles.ADMIN.members = [admin];
+    roles.SOME_ADMIN.members = [roleAdmin];
+    roles.SOME_GUARDIAN.members = [roleGuardian];
+    roles.SOME.members = [member];
+    roles.PUBLIC.members = [admin, roleAdmin, roleGuardian, member, user, other];
 
-  const manager = await ethers.deployContract('$AccessManagerMock', [admin]);
-  const target = await ethers.deployContract('$AccessManagedTarget', [manager]);
+    const manager = await ethers.deployContract('$AccessManagerMock', [admin]);
+    const target = await ethers.deployContract('$AccessManagedTarget', [manager]);
 
-  for (const { id: roleId, admin, guardian, members } of Object.values(roles)) {
-    if (roleId === roles.PUBLIC.id) continue; // Every address belong to public and is locked
-    if (roleId === roles.ADMIN.id) continue; // Admin set during construction and is locked
+    for (const { id: roleId, admin, guardian, members } of Object.values(roles)) {
+      if (roleId === roles.PUBLIC.id) continue; // Every address belong to public and is locked
+      if (roleId === roles.ADMIN.id) continue; // Admin set during construction and is locked
 
-    // Set admin role avoiding default
-    if (admin.id !== roles.ADMIN.id) {
-      await manager.$_setRoleAdmin(roleId, admin.id);
+      // Set admin role avoiding default
+      if (admin.id !== roles.ADMIN.id) {
+        await manager.$_setRoleAdmin(roleId, admin.id);
+      }
+
+      // Set guardian role avoiding default
+      if (guardian.id !== roles.ADMIN.id) {
+        await manager.$_setRoleGuardian(roleId, guardian.id);
+      }
+
+      // Grant role to members
+      for (const member of members) {
+        await manager.$_grantRole(roleId, member, 0, 0);
+      }
     }
 
-    // Set guardian role avoiding default
-    if (guardian.id !== roles.ADMIN.id) {
-      await manager.$_setRoleGuardian(roleId, guardian.id);
-    }
-
-    // Grant role to members
-    for (const member of members) {
-      await manager.$_grantRole(roleId, member, 0, 0);
-    }
+    return {
+      admin,
+      roleAdmin,
+      user,
+      other,
+      roles,
+      manager,
+      target,
+    };
   }
 
-  return {
-    admin,
-    roleAdmin,
-    user,
-    other,
-    roles,
-    manager,
-    target,
-  };
-}
-
-// This test suite is made using the following tools:
-//
-// * Predicates: Functions with common conditional setups without assertions.
-// * Behaviors: Functions with common assertions.
-//
-// The behavioral tests are built by composing predicates and are used as templates
-// for testing access to restricted functions.
-//
-// Similarly, unit tests in this suite will use predicates to test subsets of these
-// behaviors and are helped by common assertions provided for some of the predicates.
-//
-// The predicates can be identified by the `testAs*` prefix while the behaviors
-// are prefixed with `shouldBehave*`. The common assertions for predicates are
-// defined as constants.
-describe('AccessManager', function () {
+  // This test suite is made using the following tools:
+  //
+  // * Predicates: Functions with common conditional setups without assertions.
+  // * Behaviors: Functions with common assertions.
+  //
+  // The behavioral tests are built by composing predicates and are used as templates
+  // for testing access to restricted functions.
+  //
+  // Similarly, unit tests in this suite will use predicates to test subsets of these
+  // behaviors and are helped by common assertions provided for some of the predicates.
+  //
+  // The predicates can be identified by the `testAs*` prefix while the behaviors
+  // are prefixed with `shouldBehave*`. The common assertions for predicates are
+  // defined as constants.
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });
@@ -922,7 +922,11 @@ describe('AccessManager', function () {
         });
 
         describe('when reducing the delay', function () {
-          const oldDelay = time.duration.days(10);
+          let oldDelay;
+
+          before(function () {
+            oldDelay = time.duration.days(10);
+          });
 
           beforeEach('sets old delay', async function () {
             this.role = this.roles.SOME;
@@ -932,7 +936,11 @@ describe('AccessManager', function () {
           });
 
           describe('when the delay difference is shorter than minimum setback', function () {
-            const newDelay = oldDelay - 1n;
+            let newDelay;
+
+            before(function () {
+              newDelay = oldDelay - 1n;
+            });
 
             it('increases the delay after minsetback', async function () {
               const txResponse = await this.manager.connect(this.admin).setGrantDelay(this.role.id, newDelay);
@@ -984,8 +992,12 @@ describe('AccessManager', function () {
         });
 
         describe('when increasing the delay', function () {
-          const oldDelay = time.duration.days(10);
-          const newDelay = time.duration.days(11);
+          let oldDelay, newDelay;
+
+          before(function () {
+            oldDelay = time.duration.days(10);
+            newDelay = time.duration.days(11);
+          });
 
           beforeEach('sets old delay', async function () {
             await this.manager.$_setTargetAdminDelay(this.other, oldDelay);
@@ -1007,7 +1019,11 @@ describe('AccessManager', function () {
         });
 
         describe('when reducing the delay', function () {
-          const oldDelay = time.duration.days(10);
+          let oldDelay;
+
+          before(function () {
+            oldDelay = time.duration.days(10);
+          });
 
           beforeEach('sets old delay', async function () {
             await this.manager.$_setTargetAdminDelay(this.other, oldDelay);
@@ -1016,7 +1032,11 @@ describe('AccessManager', function () {
           });
 
           describe('when the delay difference is shorter than minimum setback', function () {
-            const newDelay = oldDelay - 1n;
+            let newDelay;
+
+            before(function () {
+              newDelay = oldDelay - 1n;
+            });
 
             it('increases the delay after minsetback', async function () {
               const txResponse = await this.manager.connect(this.admin).setTargetAdminDelay(this.other, newDelay);

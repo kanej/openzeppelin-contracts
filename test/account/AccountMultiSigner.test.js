@@ -1,5 +1,6 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { AbiCoder, keccak256, toBigInt, toUtf8Bytes, Wallet } from 'ethers';
 import { MAX_UINT64 } from '../helpers/constants';
 import { getDomain } from '../helpers/eip712';
 import { ERC4337Helper } from '../helpers/erc4337';
@@ -9,68 +10,68 @@ import { shouldBehaveLikeAccountCore, shouldBehaveLikeAccountHolder } from './Ac
 import { shouldBehaveLikeERC1271 } from '../utils/cryptography/ERC1271.behavior';
 import { shouldBehaveLikeERC7821 } from './extensions/ERC7821.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
 // Prepare signers in advance (RSA are long to initialize)
-const signerECDSA1 = ethers.Wallet.createRandom();
-const signerECDSA2 = ethers.Wallet.createRandom();
-const signerECDSA3 = ethers.Wallet.createRandom();
-const signerECDSA4 = ethers.Wallet.createRandom(); // Unauthorized signer
+const signerECDSA1 = Wallet.createRandom();
+const signerECDSA2 = Wallet.createRandom();
+const signerECDSA3 = Wallet.createRandom();
+const signerECDSA4 = Wallet.createRandom(); // Unauthorized signer
 const signerP256 = new NonNativeSigner(P256SigningKey.random());
 const signerRSA = new NonNativeSigner(RSASHA256SigningKey.random());
 
-// Minimal fixture common to the different signer verifiers
-async function fixture() {
-  // EOAs and environment
-  const [beneficiary, other] = await ethers.getSigners();
-  const target = await ethers.deployContract('CallReceiverMock');
-
-  // ERC-7913 verifiers
-  const verifierP256 = await ethers.deployContract('ERC7913P256Verifier');
-  const verifierRSA = await ethers.deployContract('ERC7913RSAVerifier');
-
-  // ERC-4337 env
-  const helper = new ERC4337Helper(connection);
-  await helper.wait();
-  const entrypointDomain = await getDomain(ethers.predeploy.entrypoint.v09);
-  const domain = { name: 'AccountMultiSigner', version: '1', chainId: entrypointDomain.chainId }; // Missing verifyingContract
-
-  const makeMock = (signers, threshold) =>
-    helper.newAccount('$AccountMultiSignerMock', [signers, threshold, 'AccountMultiSigner', '1']).then(mock => {
-      domain.verifyingContract = mock.address;
-      return mock;
-    });
-
-  // Sign user operations using MultiERC7913SigningKey
-  const signUserOp = function (userOp) {
-    return this.signer
-      .signTypedData(entrypointDomain, { PackedUserOperation }, userOp.packed)
-      .then(signature => Object.assign(userOp, { signature }));
-  };
-
-  const invalidSig = function () {
-    return this.signer.signMessage('invalid');
-  };
-
-  return {
-    helper,
-    verifierP256,
-    verifierRSA,
-    domain,
-    target,
-    beneficiary,
-    other,
-    makeMock,
-    signUserOp,
-    invalidSig,
-  };
-}
-
 describe('AccountMultiSigner', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  // Minimal fixture common to the different signer verifiers
+  async function fixture() {
+    // EOAs and environment
+    const [beneficiary, other] = await ethers.getSigners();
+    const target = await ethers.deployContract('CallReceiverMock');
+
+    // ERC-7913 verifiers
+    const verifierP256 = await ethers.deployContract('ERC7913P256Verifier');
+    const verifierRSA = await ethers.deployContract('ERC7913RSAVerifier');
+
+    // ERC-4337 env
+    const helper = new ERC4337Helper(connection);
+    await helper.wait();
+    const entrypointDomain = await getDomain(ethers.predeploy.entrypoint.v09);
+    const domain = { name: 'AccountMultiSigner', version: '1', chainId: entrypointDomain.chainId }; // Missing verifyingContract
+
+    const makeMock = (signers, threshold) =>
+      helper.newAccount('$AccountMultiSignerMock', [signers, threshold, 'AccountMultiSigner', '1']).then(mock => {
+        domain.verifyingContract = mock.address;
+        return mock;
+      });
+
+    // Sign user operations using MultiERC7913SigningKey
+    const signUserOp = function (userOp) {
+      return this.signer
+        .signTypedData(entrypointDomain, { PackedUserOperation }, userOp.packed)
+        .then(signature => Object.assign(userOp, { signature }));
+    };
+
+    const invalidSig = function () {
+      return this.signer.signMessage('invalid');
+    };
+
+    return {
+      helper,
+      verifierP256,
+      verifierRSA,
+      domain,
+      target,
+      beneficiary,
+      other,
+      makeMock,
+      signUserOp,
+      invalidSig,
+    };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });
@@ -110,7 +111,7 @@ describe('AccountMultiSigner', function () {
 
       signerRSA.bytes = ethers.concat([
         this.verifierRSA.target,
-        ethers.AbiCoder.defaultAbiCoder().encode(
+        AbiCoder.defaultAbiCoder().encode(
           ['bytes', 'bytes'],
           [signerRSA.signingKey.publicKey.e, signerRSA.signingKey.publicKey.n],
         ),
@@ -218,7 +219,7 @@ describe('AccountMultiSigner', function () {
   });
 
   describe('Signature validation', function () {
-    const TEST_MESSAGE = ethers.keccak256(ethers.toUtf8Bytes('Test message'));
+    const TEST_MESSAGE = keccak256(toUtf8Bytes('Test message'));
 
     beforeEach(async function () {
       // Set up mock with authorized signers
@@ -235,7 +236,7 @@ describe('AccountMultiSigner', function () {
       const signers = [
         signerECDSA1.address,
         signerECDSA4.address, // Unauthorized signer
-      ].sort((a, b) => (ethers.toBigInt(ethers.keccak256(a)) < ethers.toBigInt(ethers.keccak256(b)) ? -1 : 1));
+      ].sort((a, b) => (toBigInt(keccak256(a)) < toBigInt(keccak256(b)) ? -1 : 1));
 
       const signatures = signers.map(signer => {
         if (signer === signerECDSA1.address) return authorizedSignature;
@@ -243,7 +244,7 @@ describe('AccountMultiSigner', function () {
       });
 
       // Encode the multi-signature
-      const multiSignature = ethers.AbiCoder.defaultAbiCoder().encode(['bytes[]', 'bytes[]'], [signers, signatures]);
+      const multiSignature = AbiCoder.defaultAbiCoder().encode(['bytes[]', 'bytes[]'], [signers, signatures]);
 
       // Should fail because one signer is not authorized
       await expect(this.mock.$_rawSignatureValidation(TEST_MESSAGE, multiSignature)).to.eventually.be.false;
@@ -252,11 +253,11 @@ describe('AccountMultiSigner', function () {
     it('rejects invalid signatures from authorized signers', async function () {
       // Create a valid signature and an invalid one from authorized signers
       const validSignature = await signerECDSA1.signMessage(ethers.getBytes(TEST_MESSAGE));
-      const invalidSignature = await signerECDSA2.signMessage(ethers.toUtf8Bytes('Different message')); // Wrong message
+      const invalidSignature = await signerECDSA2.signMessage(toUtf8Bytes('Different message')); // Wrong message
 
       // Prepare signers and signatures arrays
       const signers = [signerECDSA1.address, signerECDSA2.address].sort((a, b) =>
-        ethers.toBigInt(ethers.keccak256(a)) < ethers.toBigInt(ethers.keccak256(b)) ? -1 : 1,
+        toBigInt(keccak256(a)) < toBigInt(keccak256(b)) ? -1 : 1,
       );
 
       const signatures = signers.map(signer => {
@@ -265,7 +266,7 @@ describe('AccountMultiSigner', function () {
       });
 
       // Encode the multi-signature
-      const multiSignature = ethers.AbiCoder.defaultAbiCoder().encode(['bytes[]', 'bytes[]'], [signers, signatures]);
+      const multiSignature = AbiCoder.defaultAbiCoder().encode(['bytes[]', 'bytes[]'], [signers, signatures]);
 
       // Should fail because one signature is invalid
       await expect(this.mock.$_rawSignatureValidation(TEST_MESSAGE, multiSignature)).to.eventually.be.false;
@@ -278,7 +279,7 @@ describe('AccountMultiSigner', function () {
 
       // Prepare signers and signatures arrays
       const signers = [signerECDSA1.address, signerECDSA2.address].sort((a, b) =>
-        ethers.toBigInt(ethers.keccak256(a)) < ethers.toBigInt(ethers.keccak256(b)) ? -1 : 1,
+        toBigInt(keccak256(a)) < toBigInt(keccak256(b)) ? -1 : 1,
       );
       const unsortedSigners = signers.reverse();
       const signatures = unsortedSigners.map(signer => {
@@ -287,10 +288,7 @@ describe('AccountMultiSigner', function () {
       });
 
       // Encode the multi-signature
-      const multiSignature = ethers.AbiCoder.defaultAbiCoder().encode(
-        ['bytes[]', 'bytes[]'],
-        [unsortedSigners, signatures],
-      );
+      const multiSignature = AbiCoder.defaultAbiCoder().encode(['bytes[]', 'bytes[]'], [unsortedSigners, signatures]);
 
       // Should fail because signers are not sorted
       await expect(this.mock.$_rawSignatureValidation(TEST_MESSAGE, multiSignature)).to.eventually.be.false;
@@ -305,7 +303,7 @@ describe('AccountMultiSigner', function () {
       const signatures = [validSignature1];
 
       // Encode the multi-signature
-      const multiSignature = ethers.AbiCoder.defaultAbiCoder().encode(['bytes[]', 'bytes[]'], [signers, signatures]);
+      const multiSignature = AbiCoder.defaultAbiCoder().encode(['bytes[]', 'bytes[]'], [signers, signatures]);
 
       // Should fail because signers and signatures arrays have different lengths
       await expect(this.mock.$_rawSignatureValidation(TEST_MESSAGE, multiSignature)).to.eventually.be.false;
@@ -320,7 +318,7 @@ describe('AccountMultiSigner', function () {
       const signatures = [validSignature, validSignature];
 
       // Encode the multi-signature
-      const multiSignature = ethers.AbiCoder.defaultAbiCoder().encode(['bytes[]', 'bytes[]'], [signers, signatures]);
+      const multiSignature = AbiCoder.defaultAbiCoder().encode(['bytes[]', 'bytes[]'], [signers, signatures]);
 
       // Should fail because of duplicated signers
       await expect(this.mock.$_rawSignatureValidation(TEST_MESSAGE, multiSignature)).to.eventually.be.false;

@@ -1,14 +1,8 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { parseEther } from 'ethers';
 import { ProposalState, VoteType } from '../../helpers/enums';
 import { GovernorHelper } from '../../helpers/governance';
-
-const connection = await network.connect();
-const {
-  ethers,
-  helpers: { time },
-  networkHelpers: { loadFixture, mine },
-} = connection;
 
 const TOKENS = [
   { Token: '$ERC20Votes', mode: 'blocknumber' },
@@ -19,14 +13,21 @@ const name = 'OZ-Governor';
 const version = '1';
 const tokenName = 'MockToken';
 const tokenSymbol = 'MTKN';
-const tokenSupply = ethers.parseEther('100');
+const tokenSupply = parseEther('100');
 const ratio = 8n; // percents
 const newRatio = 6n; // percents
 const votingDelay = 4n;
 const votingPeriod = 16n;
-const value = ethers.parseEther('1');
+const value = parseEther('1');
 
 describe('GovernorVotesQuorumFraction', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    helpers: { time },
+    networkHelpers: { loadFixture, mine },
+  } = connection;
+
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
       const [owner, voter1, voter2, voter3, voter4] = await ethers.getSigners();

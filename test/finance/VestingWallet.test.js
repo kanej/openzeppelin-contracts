@@ -3,34 +3,34 @@ import { expect } from 'chai';
 import { min } from '../helpers/math';
 import { envSetup, shouldBehaveLikeVesting } from './VestingWallet.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  helpers: { time },
-  networkHelpers: { loadFixture },
-} = connection;
-
-async function fixture() {
-  const amount = ethers.parseEther('100');
-  const duration = time.duration.years(4);
-  const start = (await time.clock.timestamp()) + time.duration.hours(1);
-
-  const [sender, beneficiary] = await ethers.getSigners();
-  const mock = await ethers.deployContract('VestingWallet', [beneficiary, start, duration]);
-
-  const token = await ethers.deployContract('$ERC20', ['Name', 'Symbol']);
-  await token.$_mint(mock, amount);
-  await sender.sendTransaction({ to: mock, value: amount });
-
-  const env = await envSetup(connection, mock, beneficiary, token);
-
-  const schedule = Array.from({ length: 64 }, (_, i) => (BigInt(i) * duration) / 60n + start);
-  const vestingFn = timestamp => min(amount, (amount * (timestamp - start)) / duration);
-
-  return { mock, duration, start, beneficiary, schedule, vestingFn, env };
-}
-
 describe('VestingWallet', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    helpers: { time },
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  async function fixture() {
+    const amount = ethers.parseEther('100');
+    const duration = time.duration.years(4);
+    const start = (await time.clock.timestamp()) + time.duration.hours(1);
+
+    const [sender, beneficiary] = await ethers.getSigners();
+    const mock = await ethers.deployContract('VestingWallet', [beneficiary, start, duration]);
+
+    const token = await ethers.deployContract('$ERC20', ['Name', 'Symbol']);
+    await token.$_mint(mock, amount);
+    await sender.sendTransaction({ to: mock, value: amount });
+
+    const env = await envSetup(connection, mock, beneficiary, token);
+
+    const schedule = Array.from({ length: 64 }, (_, i) => (BigInt(i) * duration) / 60n + start);
+    const vestingFn = timestamp => min(amount, (amount * (timestamp - start)) / duration);
+
+    return { mock, duration, start, beneficiary, schedule, vestingFn, env };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });

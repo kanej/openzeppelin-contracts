@@ -1,15 +1,9 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { parseEther } from 'ethers';
 import { anyValue } from '@nomicfoundation/hardhat-ethers-chai-matchers/withArgs';
 import { ProposalState, VoteType } from '../../helpers/enums';
 import { GovernorHelper } from '../../helpers/governance';
-
-const connection = await network.connect();
-const {
-  ethers,
-  helpers: { time },
-  networkHelpers: { loadFixture },
-} = connection;
 
 const TOKENS = [
   { Token: '$ERC20Votes', mode: 'blocknumber' },
@@ -20,13 +14,24 @@ const name = 'OZ-Governor';
 const version = '1';
 const tokenName = 'MockToken';
 const tokenSymbol = 'MTKN';
-const tokenSupply = ethers.parseEther('100');
+const tokenSupply = parseEther('100');
 const votingDelay = 4n;
 const votingPeriod = 16n;
-const value = ethers.parseEther('1');
-const defaultDelay = time.duration.days(2n);
+const value = parseEther('1');
 
 describe('GovernorTimelockCompound', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    helpers: { time },
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  let defaultDelay;
+  before(function () {
+    defaultDelay = time.duration.days(2n);
+  });
+
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
       const [deployer, owner, voter1, voter2, voter3, voter4, other] = await ethers.getSigners();

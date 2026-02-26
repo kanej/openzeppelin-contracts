@@ -1,14 +1,9 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { AbiCoder, parseEther } from 'ethers';
 import { getDomain, ExtendedBallot } from '../../helpers/eip712';
 import { VoteType } from '../../helpers/enums';
 import { GovernorHelper } from '../../helpers/governance';
-
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
 
 const TOKENS = [
   { Token: '$ERC20Votes', mode: 'blocknumber' },
@@ -19,17 +14,23 @@ const name = 'OZ-Governor';
 const version = '1';
 const tokenName = 'MockToken';
 const tokenSymbol = 'MTKN';
-const tokenSupply = ethers.parseEther('100');
+const tokenSupply = parseEther('100');
 const votingDelay = 4n;
 const votingPeriod = 16n;
-const value = ethers.parseEther('1');
+const value = parseEther('1');
 
 const params = {
   decoded: [42n, 'These are my params'],
-  encoded: ethers.AbiCoder.defaultAbiCoder().encode(['uint256', 'string'], [42n, 'These are my params']),
+  encoded: AbiCoder.defaultAbiCoder().encode(['uint256', 'string'], [42n, 'These are my params']),
 };
 
 describe('GovernorWithParams', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
       const [owner, proposer, voter1, voter2, voter3, voter4, other] = await ethers.getSigners();
