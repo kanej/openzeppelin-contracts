@@ -2,27 +2,27 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { shouldSupportInterfaces } from '../../../utils/introspection/SupportsInterface.behavior';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const ids = [1n, 2n, 3n];
 const values = [1000n, 2000n, 3000n];
 const data = '0x12345678';
 
-async function fixture() {
-  const [owner] = await ethers.getSigners();
-
-  const token = await ethers.deployContract('$ERC1155', ['https://token-cdn-domain/{id}.json']);
-  const mock = await ethers.deployContract('$ERC1155Holder');
-
-  await token.$_mintBatch(owner, ids, values, '0x');
-
-  return { owner, token, mock };
-}
-
 describe('ERC1155Holder', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [owner] = await ethers.getSigners();
+
+    const token = await ethers.deployContract('$ERC1155', ['https://token-cdn-domain/{id}.json']);
+    const mock = await ethers.deployContract('$ERC1155Holder');
+
+    await token.$_mintBatch(owner, ids, values, '0x');
+
+    return { owner, token, mock };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

@@ -1,21 +1,21 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { toBigInt, toBeHex } from 'ethers';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 import { generators } from '../helpers/random';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-const formatSlice = ({ length, ptr = 0xa0 }) =>
-  ethers.toBeHex((ethers.toBigInt(length) << 128n) | ethers.toBigInt(ptr), 32);
-
-async function fixture() {
-  return { mock: await ethers.deployContract('$Memory') };
-}
+const formatSlice = ({ length, ptr = 0xa0 }) => toBeHex((toBigInt(length) << 128n) | toBigInt(ptr), 32);
 
 describe('Memory', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$Memory') };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

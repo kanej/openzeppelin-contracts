@@ -1,40 +1,41 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { AbiCoder, Typed, TypedDataEncoder } from 'ethers';
 import { Permit } from '../../helpers/eip712';
 import { ERC4337Utils, PersonalSign } from '../../helpers/erc7739';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const details = ERC4337Utils.getContentsDetail({ Permit });
 
-const fixture = async () => {
-  const mock = await ethers.deployContract('$ERC7739Utils');
-  const domain = {
-    name: 'SomeDomain',
-    version: '1',
-    chainId: await ethers.provider.getNetwork().then(({ chainId }) => chainId),
-    verifyingContract: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
-  };
-  const otherDomain = {
-    name: 'SomeOtherDomain',
-    version: '2',
-    chainId: await ethers.provider.getNetwork().then(({ chainId }) => chainId),
-    verifyingContract: '0x92C32cadBc39A15212505B5530aA765c441F306f',
-  };
-  const permit = {
-    owner: '0x1ab5E417d9AF00f1ca9d159007e12c401337a4bb',
-    spender: '0xD68E96620804446c4B1faB3103A08C98d4A8F55f',
-    value: 1_000_000n,
-    nonce: 0n,
-    deadline: ethers.MaxUint256,
-  };
-  return { mock, domain, otherDomain, permit };
-};
-
 describe('ERC7739Utils', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  const fixture = async () => {
+    const mock = await ethers.deployContract('$ERC7739Utils');
+    const domain = {
+      name: 'SomeDomain',
+      version: '1',
+      chainId: await ethers.provider.getNetwork().then(({ chainId }) => chainId),
+      verifyingContract: '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+    };
+    const otherDomain = {
+      name: 'SomeOtherDomain',
+      version: '2',
+      chainId: await ethers.provider.getNetwork().then(({ chainId }) => chainId),
+      verifyingContract: '0x92C32cadBc39A15212505B5530aA765c441F306f',
+    };
+    const permit = {
+      owner: '0x1ab5E417d9AF00f1ca9d159007e12c401337a4bb',
+      spender: '0xD68E96620804446c4B1faB3103A08C98d4A8F55f',
+      value: 1_000_000n,
+      nonce: 0n,
+      deadline: ethers.MaxUint256,
+    };
+    return { mock, domain, otherDomain, permit };
+  };
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -107,7 +108,7 @@ describe('ERC7739Utils', function () {
       const text = 'Hello, world!';
 
       await expect(this.mock.$personalSignStructHash(ethers.hashMessage(text))).to.eventually.equal(
-        ethers.TypedDataEncoder.hashStruct('PersonalSign', { PersonalSign }, ERC4337Utils.preparePersonalSign(text)),
+        TypedDataEncoder.hashStruct('PersonalSign', { PersonalSign }, ERC4337Utils.preparePersonalSign(text)),
       );
     });
   });
@@ -116,10 +117,10 @@ describe('ERC7739Utils', function () {
     it('should match the typed data nested struct hash', async function () {
       const message = ERC4337Utils.prepareSignTypedData(this.permit, this.domain);
 
-      const contentsHash = ethers.TypedDataEncoder.hashStruct('Permit', { Permit }, this.permit);
-      const hash = ethers.TypedDataEncoder.hashStruct('TypedDataSign', details.allTypes, message);
+      const contentsHash = TypedDataEncoder.hashStruct('Permit', { Permit }, this.permit);
+      const hash = TypedDataEncoder.hashStruct('TypedDataSign', details.allTypes, message);
 
-      const domainBytes = ethers.AbiCoder.defaultAbiCoder().encode(
+      const domainBytes = AbiCoder.defaultAbiCoder().encode(
         ['bytes32', 'bytes32', 'uint256', 'address', 'bytes32'],
         [
           ethers.id(this.domain.name),
@@ -133,7 +134,7 @@ describe('ERC7739Utils', function () {
       await expect(
         this.mock.$typedDataSignStructHash(
           details.contentsTypeName,
-          ethers.Typed.string(details.contentsDescr),
+          Typed.string(details.contentsDescr),
           contentsHash,
           domainBytes,
         ),
@@ -146,7 +147,7 @@ describe('ERC7739Utils', function () {
 
   describe('typedDataSignTypehash', function () {
     it('should match', async function () {
-      const typedDataSignType = ethers.TypedDataEncoder.from(details.allTypes).encodeType('TypedDataSign');
+      const typedDataSignType = TypedDataEncoder.from(details.allTypes).encodeType('TypedDataSign');
 
       await expect(
         this.mock.$typedDataSignTypehash(

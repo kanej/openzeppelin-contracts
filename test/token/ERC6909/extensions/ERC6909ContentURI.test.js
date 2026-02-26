@@ -2,16 +2,16 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { shouldSupportInterfaces } from '../../../utils/introspection/SupportsInterface.behavior';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  return { token: await ethers.deployContract('$ERC6909ContentURI') };
-}
-
 describe('ERC6909ContentURI', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { token: await ethers.deployContract('$ERC6909ContentURI') };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

@@ -1,20 +1,20 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [pauser] = await ethers.getSigners();
-
-  const mock = await ethers.deployContract('PausableMock');
-
-  return { pauser, mock };
-}
-
 describe('Pausable', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [pauser] = await ethers.getSigners();
+
+    const mock = await ethers.deployContract('PausableMock');
+
+    return { pauser, mock };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

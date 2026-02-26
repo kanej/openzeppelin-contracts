@@ -1,22 +1,23 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { MaxInt256, MinInt256 } from 'ethers';
 import { min, max } from '../../helpers/math';
-
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
 
 async function testCommutative(fn, lhs, rhs, expected, ...extra) {
   expect(await fn(lhs, rhs, ...extra)).to.deep.equal(expected);
   expect(await fn(rhs, lhs, ...extra)).to.deep.equal(expected);
 }
 
-async function fixture() {
-  return { mock: await ethers.deployContract('$SignedMath') };
-}
-
 describe('SignedMath', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return { mock: await ethers.deployContract('$SignedMath') };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -35,8 +36,8 @@ describe('SignedMath', function () {
 
   describe('average', function () {
     it('is correctly calculated with various input', async function () {
-      for (const x of [ethers.MinInt256, -57417n, -42304n, -4n, -3n, 0n, 3n, 4n, 42304n, 57417n, ethers.MaxInt256]) {
-        for (const y of [ethers.MinInt256, -57417n, -42304n, -5n, -2n, 0n, 2n, 5n, 42304n, 57417n, ethers.MaxInt256]) {
+      for (const x of [MinInt256, -57417n, -42304n, -4n, -3n, 0n, 3n, 4n, 42304n, 57417n, MaxInt256]) {
+        for (const y of [MinInt256, -57417n, -42304n, -5n, -2n, 0n, 2n, 5n, 42304n, 57417n, MaxInt256]) {
           expect(await this.mock.$average(x, y)).to.equal((x + y) / 2n);
         }
       }
@@ -46,7 +47,7 @@ describe('SignedMath', function () {
   describe('abs', function () {
     const abs = x => (x < 0n ? -x : x);
 
-    for (const n of [ethers.MinInt256, ethers.MinInt256 + 1n, -1n, 0n, 1n, ethers.MaxInt256 - 1n, ethers.MaxInt256]) {
+    for (const n of [MinInt256, MinInt256 + 1n, -1n, 0n, 1n, MaxInt256 - 1n, MaxInt256]) {
       it(`correctly computes the absolute value of ${n}`, async function () {
         expect(await this.mock.$abs(n)).to.equal(abs(n));
       });

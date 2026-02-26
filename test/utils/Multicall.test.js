@@ -1,23 +1,23 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [holder, alice, bruce] = await ethers.getSigners();
-
-  const amount = 12_000n;
-  const helper = await ethers.deployContract('MulticallHelper');
-  const mock = await ethers.deployContract('$ERC20MulticallMock', ['name', 'symbol']);
-  await mock.$_mint(holder, amount);
-
-  return { holder, alice, bruce, amount, mock, helper };
-}
-
 describe('Multicall', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [holder, alice, bruce] = await ethers.getSigners();
+
+    const amount = 12_000n;
+    const helper = await ethers.deployContract('MulticallHelper');
+    const mock = await ethers.deployContract('$ERC20MulticallMock', ['name', 'symbol']);
+    await mock.$_mint(holder, amount);
+
+    return { holder, alice, bruce, amount, mock, helper };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

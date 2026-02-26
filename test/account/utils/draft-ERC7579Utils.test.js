@@ -1,5 +1,6 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { AbiCoder } from 'ethers';
 import {
   CALL_TYPE_CALL,
   CALL_TYPE_BATCH,
@@ -13,21 +14,21 @@ import {
 } from '../../helpers/erc7579';
 import { selector } from '../../helpers/methods';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-const fixture = async () => {
-  const [sender] = await ethers.getSigners();
-  const utils = await ethers.deployContract('$ERC7579Utils', { value: ethers.parseEther('1') });
-  const utilsGlobal = await ethers.deployContract('$ERC7579UtilsGlobalMock');
-  const target = await ethers.deployContract('CallReceiverMock');
-  const anotherTarget = await ethers.deployContract('CallReceiverMock');
-  return { utils, utilsGlobal, target, anotherTarget, sender };
-};
-
 describe('ERC7579Utils', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  const fixture = async () => {
+    const [sender] = await ethers.getSigners();
+    const utils = await ethers.deployContract('$ERC7579Utils', { value: ethers.parseEther('1') });
+    const utilsGlobal = await ethers.deployContract('$ERC7579UtilsGlobalMock');
+    const target = await ethers.deployContract('CallReceiverMock');
+    const anotherTarget = await ethers.deployContract('CallReceiverMock');
+    return { utils, utilsGlobal, target, anotherTarget, sender };
+  };
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -102,10 +103,7 @@ describe('ERC7579Utils', function () {
           CALL_TYPE_CALL,
           ethers.solidityPacked(
             ['bytes4', 'bytes'],
-            [
-              selector('Error(string)'),
-              ethers.AbiCoder.defaultAbiCoder().encode(['string'], ['CallReceiverMock: reverting']),
-            ],
+            [selector('Error(string)'), AbiCoder.defaultAbiCoder().encode(['string'], ['CallReceiverMock: reverting'])],
           ),
         );
     });
@@ -193,10 +191,7 @@ describe('ERC7579Utils', function () {
           CALL_TYPE_BATCH,
           ethers.solidityPacked(
             ['bytes4', 'bytes'],
-            [
-              selector('Error(string)'),
-              ethers.AbiCoder.defaultAbiCoder().encode(['string'], ['CallReceiverMock: reverting']),
-            ],
+            [selector('Error(string)'), AbiCoder.defaultAbiCoder().encode(['string'], ['CallReceiverMock: reverting'])],
           ),
         );
 
@@ -259,10 +254,7 @@ describe('ERC7579Utils', function () {
           CALL_TYPE_CALL,
           ethers.solidityPacked(
             ['bytes4', 'bytes'],
-            [
-              selector('Error(string)'),
-              ethers.AbiCoder.defaultAbiCoder().encode(['string'], ['CallReceiverMock: reverting']),
-            ],
+            [selector('Error(string)'), AbiCoder.defaultAbiCoder().encode(['string'], ['CallReceiverMock: reverting'])],
           ),
         );
     });

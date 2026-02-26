@@ -1,16 +1,17 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { Wallet } from 'ethers';
 import { sum } from '../../../helpers/math';
-
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
 
 const name = 'Non Fungible Token';
 const symbol = 'NFT';
 
 describe('ERC721Consecutive', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
   for (const offset of [0n, 1n, 42n]) {
     describe(`with offset ${offset}`, function () {
       async function fixture() {
@@ -202,7 +203,7 @@ describe('ERC721Consecutive', function () {
   }
 
   describe('invalid use', function () {
-    const receiver = ethers.Wallet.createRandom();
+    const receiver = Wallet.createRandom();
 
     it('cannot mint a batch larger than 5000', async function () {
       const factory = await ethers.getContractFactory('$ERC721ConsecutiveMock');

@@ -4,37 +4,37 @@ import { MAX_UINT48 } from '../helpers/constants';
 import { ForwardRequest, getDomain } from '../helpers/eip712';
 import { shouldBehaveLikeRegularContext } from '../utils/Context.behavior';
 
-const {
-  ethers,
-  helpers: { impersonate },
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [sender, other] = await ethers.getSigners();
-
-  const forwarder = await ethers.deployContract('ERC2771Forwarder', ['ERC2771Forwarder']);
-  const forwarderAsSigner = await impersonate(forwarder.target);
-  const context = await ethers.deployContract('ERC2771ContextMock', [forwarder]);
-  const contextHelper = await ethers.deployContract('ContextMockCaller', []);
-  const domain = await getDomain(forwarder);
-
-  const prepareAndSignRequest = async (signer, request) => {
-    // request.to is mandatory
-    request.from ??= signer.address;
-    request.value ??= 0n;
-    request.data ??= '0x';
-    request.gas ??= 100000n;
-    request.nonce ??= await forwarder.nonces(signer);
-    request.deadline ??= MAX_UINT48;
-    request.signature = await signer.signTypedData(domain, { ForwardRequest }, request);
-    return request;
-  };
-
-  return { sender, other, forwarder, forwarderAsSigner, context, contextHelper, prepareAndSignRequest };
-}
-
 describe('ERC2771Context', function () {
+  const {
+    ethers,
+    helpers: { impersonate },
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [sender, other] = await ethers.getSigners();
+
+    const forwarder = await ethers.deployContract('ERC2771Forwarder', ['ERC2771Forwarder']);
+    const forwarderAsSigner = await impersonate(forwarder.target);
+    const context = await ethers.deployContract('ERC2771ContextMock', [forwarder]);
+    const contextHelper = await ethers.deployContract('ContextMockCaller', []);
+    const domain = await getDomain(forwarder);
+
+    const prepareAndSignRequest = async (signer, request) => {
+      // request.to is mandatory
+      request.from ??= signer.address;
+      request.value ??= 0n;
+      request.data ??= '0x';
+      request.gas ??= 100000n;
+      request.nonce ??= await forwarder.nonces(signer);
+      request.deadline ??= MAX_UINT48;
+      request.signature = await signer.signTypedData(domain, { ForwardRequest }, request);
+      return request;
+    };
+
+    return { sender, other, forwarder, forwarderAsSigner, context, contextHelper, prepareAndSignRequest };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

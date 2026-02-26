@@ -1,10 +1,6 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
-
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
+import { Typed } from 'ethers';
 
 const erc1155Uri = 'https://token.com/nfts/';
 const baseUri = 'https://token.com/';
@@ -12,6 +8,10 @@ const tokenId = 1n;
 const value = 3000n;
 
 describe('ERC1155URIStorage', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
   describe('with base uri set', function () {
     async function fixture() {
       const [holder] = await ethers.getSigners();
@@ -35,7 +35,7 @@ describe('ERC1155URIStorage', function () {
       const tokenUri = '1234/';
       const expectedUri = `${baseUri}${tokenUri}`;
 
-      await expect(this.token.$_setURI(ethers.Typed.uint256(tokenId), tokenUri))
+      await expect(this.token.$_setURI(Typed.uint256(tokenId), tokenUri))
         .to.emit(this.token, 'URI')
         .withArgs(expectedUri, tokenId);
 
@@ -64,7 +64,7 @@ describe('ERC1155URIStorage', function () {
     it('can request the token uri, returning the token uri if a token uri was set', async function () {
       const tokenUri = 'ipfs://1234/';
 
-      await expect(this.token.$_setURI(ethers.Typed.uint256(tokenId), tokenUri))
+      await expect(this.token.$_setURI(Typed.uint256(tokenId), tokenUri))
         .to.emit(this.token, 'URI')
         .withArgs(tokenUri, tokenId);
 

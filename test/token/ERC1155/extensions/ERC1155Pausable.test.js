@@ -1,18 +1,17 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [holder, operator, receiver, other] = await ethers.getSigners();
-  const token = await ethers.deployContract('$ERC1155Pausable', ['https://token-cdn-domain/{id}.json']);
-  return { token, holder, operator, receiver, other };
-}
-
 describe('ERC1155Pausable', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [holder, operator, receiver, other] = await ethers.getSigners();
+    const token = await ethers.deployContract('$ERC1155Pausable', ['https://token-cdn-domain/{id}.json']);
+    return { token, holder, operator, receiver, other };
+  }
   const firstTokenId = 37n;
   const firstTokenValue = 42n;
   const secondTokenId = 19842n;

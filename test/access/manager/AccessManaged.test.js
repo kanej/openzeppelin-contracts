@@ -1,36 +1,36 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  helpers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [admin, roleMember, other] = await ethers.getSigners();
-
-  const authority = await ethers.deployContract('$AccessManager', [admin]);
-  const managed = await ethers.deployContract('$AccessManagedTarget', [authority]);
-
-  const anotherAuthority = await ethers.deployContract('$AccessManager', [admin]);
-  const authorityObserveIsConsuming = await ethers.deployContract('$AuthorityObserveIsConsuming');
-
-  await helpers.impersonate(authority.target);
-  const authorityAsSigner = await ethers.getSigner(authority.target);
-
-  return {
-    roleMember,
-    other,
-    authorityAsSigner,
-    authority,
-    managed,
-    authorityObserveIsConsuming,
-    anotherAuthority,
-  };
-}
-
 describe('AccessManaged', function () {
+  const {
+    ethers,
+    helpers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [admin, roleMember, other] = await ethers.getSigners();
+
+    const authority = await ethers.deployContract('$AccessManager', [admin]);
+    const managed = await ethers.deployContract('$AccessManagedTarget', [authority]);
+
+    const anotherAuthority = await ethers.deployContract('$AccessManager', [admin]);
+    const authorityObserveIsConsuming = await ethers.deployContract('$AuthorityObserveIsConsuming');
+
+    await helpers.impersonate(authority.target);
+    const authorityAsSigner = await ethers.getSigner(authority.target);
+
+    return {
+      roleMember,
+      other,
+      authorityAsSigner,
+      authority,
+      managed,
+      authorityObserveIsConsuming,
+      anotherAuthority,
+    };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

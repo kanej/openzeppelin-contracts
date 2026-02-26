@@ -1,25 +1,25 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  helpers: { impersonate, time },
-  networkHelpers: { loadFixture, setCode },
-} = await network.connect();
-
 const SYSTEM_ADDRESS = '0xfffffffffffffffffffffffffffffffffffffffe';
 const HISTORY_SERVE_WINDOW = 8191;
 const BLOCKHASH_SERVE_WINDOW = 256;
 
-async function fixture() {
-  return {
-    mock: await ethers.deployContract('$Blockhash'),
-    systemSigner: await impersonate(SYSTEM_ADDRESS),
-    latestBlock: await ethers.provider.getBlock('latest'),
-  };
-}
-
 describe('Blockhash', function () {
+  const {
+    ethers,
+    helpers: { impersonate, time },
+    networkHelpers: { loadFixture, setCode },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    return {
+      mock: await ethers.deployContract('$Blockhash'),
+      systemSigner: await impersonate(SYSTEM_ADDRESS),
+      latestBlock: await ethers.provider.getBlock('latest'),
+    };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

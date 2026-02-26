@@ -1,23 +1,23 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [owner, accountA, accountB] = await ethers.getSigners();
-  const ownable2Step = await ethers.deployContract('$Ownable2Step', [owner]);
-  return {
-    ownable2Step,
-    owner,
-    accountA,
-    accountB,
-  };
-}
-
 describe('Ownable2Step', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [owner, accountA, accountB] = await ethers.getSigners();
+    const ownable2Step = await ethers.deployContract('$Ownable2Step', [owner]);
+    return {
+      ownable2Step,
+      owner,
+      accountA,
+      accountB,
+    };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

@@ -1,20 +1,21 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { AbiCoder, toBigInt } from 'ethers';
 import { erc7201Slot } from '../helpers/storage';
 import { generators } from '../helpers/random';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [account] = await ethers.getSigners();
-  const mock = await ethers.deployContract('$SlotDerivation');
-  return { mock, account };
-}
-
 describe('SlotDerivation', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [account] = await ethers.getSigners();
+    const mock = await ethers.deployContract('$SlotDerivation');
+    return { mock, account };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
@@ -31,7 +32,7 @@ describe('SlotDerivation', function () {
     it('offset', async function () {
       const base = generators.bytes32();
       const offset = generators.uint256();
-      expect(await this.mock.$offset(base, offset)).to.equal((ethers.toBigInt(base) + offset) & ethers.MaxUint256);
+      expect(await this.mock.$offset(base, offset)).to.equal((toBigInt(base) + offset) & ethers.MaxUint256);
     });
 
     it('array', async function () {
@@ -52,7 +53,7 @@ describe('SlotDerivation', function () {
         it(type, async function () {
           const base = generators.bytes32();
           const expected = isValueType
-            ? ethers.keccak256(ethers.AbiCoder.defaultAbiCoder().encode([type, 'bytes32'], [key, base]))
+            ? ethers.keccak256(AbiCoder.defaultAbiCoder().encode([type, 'bytes32'], [key, base]))
             : ethers.solidityPackedKeccak256([type, 'bytes32'], [key, base]);
           expect(await this.mock[`$deriveMapping(bytes32,${type})`](base, key)).to.equal(expected);
         });

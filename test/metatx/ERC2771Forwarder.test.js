@@ -3,59 +3,59 @@ import { expect } from 'chai';
 import { ForwardRequest, getDomain } from '../helpers/eip712';
 import { sum } from '../helpers/math';
 
-const {
-  ethers,
-  helpers: { time },
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
-async function fixture() {
-  const [sender, refundReceiver, another, ...accounts] = await ethers.getSigners();
-
-  const forwarder = await ethers.deployContract('ERC2771Forwarder', ['ERC2771Forwarder']);
-  const receiver = await ethers.deployContract('CallReceiverMockTrustingForwarder', [forwarder]);
-  const domain = await getDomain(forwarder);
-  const types = { ForwardRequest };
-
-  const forgeRequest = async (override = {}, signer = sender) => {
-    const req = {
-      from: await signer.getAddress(),
-      to: await receiver.getAddress(),
-      value: 0n,
-      data: receiver.interface.encodeFunctionData('mockFunction'),
-      gas: 100000n,
-      deadline: (await time.clock.timestamp()) + 60n,
-      nonce: await forwarder.nonces(sender),
-      ...override,
-    };
-    req.signature = await signer.signTypedData(domain, types, req);
-    return req;
-  };
-
-  const estimateRequest = request =>
-    ethers.provider.estimateGas({
-      from: forwarder,
-      to: request.to,
-      data: ethers.solidityPacked(['bytes', 'address'], [request.data, request.from]),
-      value: request.value,
-      gasLimit: request.gas,
-    });
-
-  return {
-    sender,
-    refundReceiver,
-    another,
-    accounts,
-    forwarder,
-    receiver,
-    forgeRequest,
-    estimateRequest,
-    domain,
-    types,
-  };
-}
-
 describe('ERC2771Forwarder', function () {
+  const {
+    ethers,
+    helpers: { time },
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [sender, refundReceiver, another, ...accounts] = await ethers.getSigners();
+
+    const forwarder = await ethers.deployContract('ERC2771Forwarder', ['ERC2771Forwarder']);
+    const receiver = await ethers.deployContract('CallReceiverMockTrustingForwarder', [forwarder]);
+    const domain = await getDomain(forwarder);
+    const types = { ForwardRequest };
+
+    const forgeRequest = async (override = {}, signer = sender) => {
+      const req = {
+        from: await signer.getAddress(),
+        to: await receiver.getAddress(),
+        value: 0n,
+        data: receiver.interface.encodeFunctionData('mockFunction'),
+        gas: 100000n,
+        deadline: (await time.clock.timestamp()) + 60n,
+        nonce: await forwarder.nonces(sender),
+        ...override,
+      };
+      req.signature = await signer.signTypedData(domain, types, req);
+      return req;
+    };
+
+    const estimateRequest = request =>
+      ethers.provider.estimateGas({
+        from: forwarder,
+        to: request.to,
+        data: ethers.solidityPacked(['bytes', 'address'], [request.data, request.from]),
+        value: request.value,
+        gasLimit: request.gas,
+      });
+
+    return {
+      sender,
+      refundReceiver,
+      another,
+      accounts,
+      forwarder,
+      receiver,
+      forgeRequest,
+      estimateRequest,
+      domain,
+      types,
+    };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

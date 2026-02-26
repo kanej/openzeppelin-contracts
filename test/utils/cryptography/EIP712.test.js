@@ -3,35 +3,35 @@ import { expect } from 'chai';
 import { getDomain, domainSeparator, hashTypedData } from '../../helpers/eip712';
 import { formatType } from '../../helpers/eip712-types';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const LENGTHS = {
   short: ['A Name', '1'],
   long: ['A'.repeat(40), 'B'.repeat(40)],
 };
 
-const fixture = async () => {
-  const [from, to] = await ethers.getSigners();
-
-  const lengths = {};
-  for (const [shortOrLong, [name, version]] of Object.entries(LENGTHS)) {
-    lengths[shortOrLong] = { name, version };
-    lengths[shortOrLong].eip712 = await ethers.deployContract('$EIP712Verifier', [name, version]);
-    lengths[shortOrLong].domain = {
-      name,
-      version,
-      chainId: await ethers.provider.getNetwork().then(({ chainId }) => chainId),
-      verifyingContract: lengths[shortOrLong].eip712.target,
-    };
-  }
-
-  return { from, to, lengths };
-};
-
 describe('EIP712', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  const fixture = async () => {
+    const [from, to] = await ethers.getSigners();
+
+    const lengths = {};
+    for (const [shortOrLong, [name, version]] of Object.entries(LENGTHS)) {
+      lengths[shortOrLong] = { name, version };
+      lengths[shortOrLong].eip712 = await ethers.deployContract('$EIP712Verifier', [name, version]);
+      lengths[shortOrLong].domain = {
+        name,
+        version,
+        chainId: await ethers.provider.getNetwork().then(({ chainId }) => chainId),
+        verifyingContract: lengths[shortOrLong].eip712.target,
+      };
+    }
+
+    return { from, to, lengths };
+  };
+
   for (const [shortOrLong, [name, version]] of Object.entries(LENGTHS)) {
     describe(`with ${shortOrLong} name and version`, function () {
       beforeEach('deploying', async function () {

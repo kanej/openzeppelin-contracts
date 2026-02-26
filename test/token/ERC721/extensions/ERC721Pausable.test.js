@@ -1,24 +1,25 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
-
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
+import { Typed } from 'ethers';
 
 const name = 'Non Fungible Token';
 const symbol = 'NFT';
 const tokenId = 1n;
 const otherTokenId = 2n;
-const data = ethers.Typed.bytes('0x42');
-
-async function fixture() {
-  const [owner, receiver, operator] = await ethers.getSigners();
-  const token = await ethers.deployContract('$ERC721Pausable', [name, symbol]);
-  return { owner, receiver, operator, token };
-}
+const data = Typed.bytes('0x42');
 
 describe('ERC721Pausable', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [owner, receiver, operator] = await ethers.getSigners();
+    const token = await ethers.deployContract('$ERC721Pausable', [name, symbol]);
+    return { owner, receiver, operator, token };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

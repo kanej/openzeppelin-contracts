@@ -2,11 +2,6 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { shouldSupportInterfaces } from '../../../utils/introspection/SupportsInterface.behavior';
 
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = await network.connect();
-
 const name = 'Non Fungible Token';
 const symbol = 'NFT';
 const baseURI = 'https://api.example.com/v1/';
@@ -15,13 +10,18 @@ const sampleUri = 'mock://mytoken';
 const tokenId = 1n;
 const nonExistentTokenId = 2n;
 
-async function fixture() {
-  const [owner] = await ethers.getSigners();
-  const token = await ethers.deployContract('$ERC721URIStorageMock', [name, symbol]);
-  return { owner, token };
-}
-
 describe('ERC721URIStorage', function () {
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = network.mocha.connectOnBefore();
+
+  async function fixture() {
+    const [owner] = await ethers.getSigners();
+    const token = await ethers.deployContract('$ERC721URIStorageMock', [name, symbol]);
+    return { owner, token };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });
