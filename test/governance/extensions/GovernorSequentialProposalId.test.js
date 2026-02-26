@@ -38,6 +38,7 @@ describe('GovernorSequentialProposalId', function () {
       throw error;
     }
   }
+
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
       const [owner, proposer, voter1, voter2, voter3, voter4, userEOA] = await ethers.getSigners();
@@ -197,7 +198,7 @@ describe('GovernorSequentialProposalId', function () {
         await this.helper.waitForDeadline();
 
         await expect(this.helper.execute())
-          .to.eventually.emit(this.mock, 'ProposalExecuted')
+          .to.emit(this.mock, 'ProposalExecuted')
           .withArgs(1)
           .emit(this.receiver, 'MockFunctionCalled');
       });
