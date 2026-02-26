@@ -3,12 +3,6 @@ import { expect } from 'chai';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 import { shouldBehaveLikeERC20, shouldBehaveLikeERC20Transfer, shouldBehaveLikeERC20Approve } from './ERC20.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
 const TOKENS = [{ Token: '$ERC20' }, { Token: '$ERC20ApprovalMock', forcedApproval: true }];
 
 const name = 'My Token';
@@ -16,6 +10,12 @@ const symbol = 'MTKN';
 const initialSupply = 100n;
 
 describe('ERC20', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
   for (const { Token, forcedApproval } of TOKENS) {
     describe(Token, function () {
       const fixture = async () => {
