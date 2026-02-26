@@ -1,5 +1,6 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { AbiCoder, Wallet } from 'ethers';
 import { MAX_UINT64 } from '../helpers/constants';
 import { getDomain } from '../helpers/eip712';
 import { ERC4337Helper } from '../helpers/erc4337';
@@ -9,70 +10,70 @@ import { shouldBehaveLikeAccountCore, shouldBehaveLikeAccountHolder } from './Ac
 import { shouldBehaveLikeERC1271 } from '../utils/cryptography/ERC1271.behavior';
 import { shouldBehaveLikeERC7821 } from './extensions/ERC7821.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
 // Prepare signers in advance (RSA are long to initialize)
-const signerECDSA1 = ethers.Wallet.createRandom();
-const signerECDSA2 = ethers.Wallet.createRandom();
-const signerECDSA3 = ethers.Wallet.createRandom();
-const signerECDSA4 = ethers.Wallet.createRandom();
+const signerECDSA1 = Wallet.createRandom();
+const signerECDSA2 = Wallet.createRandom();
+const signerECDSA3 = Wallet.createRandom();
+const signerECDSA4 = Wallet.createRandom();
 const signerP256 = new NonNativeSigner(P256SigningKey.random());
 const signerRSA = new NonNativeSigner(RSASHA256SigningKey.random());
 
-// Minimal fixture common to the different signer verifiers
-async function fixture() {
-  // EOAs and environment
-  const [beneficiary, other] = await ethers.getSigners();
-  const target = await ethers.deployContract('CallReceiverMock');
-
-  // ERC-7913 verifiers
-  const verifierP256 = await ethers.deployContract('ERC7913P256Verifier');
-  const verifierRSA = await ethers.deployContract('ERC7913RSAVerifier');
-
-  // ERC-4337 env
-  const helper = new ERC4337Helper(connection);
-  await helper.wait();
-  const entrypointDomain = await getDomain(ethers.predeploy.entrypoint.v09);
-  const domain = { name: 'AccountMultiSignerWeighted', version: '1', chainId: entrypointDomain.chainId }; // Missing verifyingContract
-
-  const makeMock = (signers, weights, threshold) =>
-    helper
-      .newAccount('$AccountMultiSignerWeightedMock', [signers, weights, threshold, 'AccountMultiSignerWeighted', '1'])
-      .then(mock => {
-        domain.verifyingContract = mock.address;
-        return mock;
-      });
-
-  // Sign user operations using NonNativeSigner with MultiERC7913SigningKey
-  const signUserOp = function (userOp) {
-    return this.signer
-      .signTypedData(entrypointDomain, { PackedUserOperation }, userOp.packed)
-      .then(signature => Object.assign(userOp, { signature }));
-  };
-
-  const invalidSig = function () {
-    return this.signer.signMessage('invalid');
-  };
-
-  return {
-    helper,
-    verifierP256,
-    verifierRSA,
-    domain,
-    target,
-    beneficiary,
-    other,
-    makeMock,
-    signUserOp,
-    invalidSig,
-  };
-}
-
 describe('AccountMultiSignerWeighted', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  // Minimal fixture common to the different signer verifiers
+  async function fixture() {
+    // EOAs and environment
+    const [beneficiary, other] = await ethers.getSigners();
+    const target = await ethers.deployContract('CallReceiverMock');
+
+    // ERC-7913 verifiers
+    const verifierP256 = await ethers.deployContract('ERC7913P256Verifier');
+    const verifierRSA = await ethers.deployContract('ERC7913RSAVerifier');
+
+    // ERC-4337 env
+    const helper = new ERC4337Helper(connection);
+    await helper.wait();
+    const entrypointDomain = await getDomain(ethers.predeploy.entrypoint.v09);
+    const domain = { name: 'AccountMultiSignerWeighted', version: '1', chainId: entrypointDomain.chainId }; // Missing verifyingContract
+
+    const makeMock = (signers, weights, threshold) =>
+      helper
+        .newAccount('$AccountMultiSignerWeightedMock', [signers, weights, threshold, 'AccountMultiSignerWeighted', '1'])
+        .then(mock => {
+          domain.verifyingContract = mock.address;
+          return mock;
+        });
+
+    // Sign user operations using NonNativeSigner with MultiERC7913SigningKey
+    const signUserOp = function (userOp) {
+      return this.signer
+        .signTypedData(entrypointDomain, { PackedUserOperation }, userOp.packed)
+        .then(signature => Object.assign(userOp, { signature }));
+    };
+
+    const invalidSig = function () {
+      return this.signer.signMessage('invalid');
+    };
+
+    return {
+      helper,
+      verifierP256,
+      verifierRSA,
+      domain,
+      target,
+      beneficiary,
+      other,
+      makeMock,
+      signUserOp,
+      invalidSig,
+    };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });
@@ -112,7 +113,7 @@ describe('AccountMultiSignerWeighted', function () {
 
       signerRSA.bytes = ethers.concat([
         this.verifierRSA.target,
-        ethers.AbiCoder.defaultAbiCoder().encode(
+        AbiCoder.defaultAbiCoder().encode(
           ['bytes', 'bytes'],
           [signerRSA.signingKey.publicKey.e, signerRSA.signingKey.publicKey.n],
         ),

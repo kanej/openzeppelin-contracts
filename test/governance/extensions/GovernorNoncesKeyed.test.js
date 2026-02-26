@@ -1,24 +1,19 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { parseEther } from 'ethers';
 import { getDomain, Ballot, ExtendedBallot } from '../../helpers/eip712';
 import { VoteType } from '../../helpers/enums';
 import { GovernorHelper } from '../../helpers/governance';
 import { shouldBehaveLikeNoncesKeyed } from '../../utils/Nonces.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
 const name = 'OZ-Governor';
 const version = '1';
 const tokenName = 'MockToken';
 const tokenSymbol = 'MTKN';
-const tokenSupply = ethers.parseEther('100');
+const tokenSupply = parseEther('100');
 const votingDelay = 4n;
 const votingPeriod = 16n;
-const value = ethers.parseEther('1');
+const value = parseEther('1');
 
 const signBallot = account => (contract, message) =>
   getDomain(contract).then(domain => account.signTypedData(domain, { Ballot }, message));
@@ -26,6 +21,12 @@ const signExtendedBallot = account => (contract, message) =>
   getDomain(contract).then(domain => account.signTypedData(domain, { ExtendedBallot }, message));
 
 describe('GovernorNoncesKeyed', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
   const fixture = async () => {
     const [owner, proposer, voter1, voter2, voter3, voter4, userEOA] = await ethers.getSigners();
     const receiver = await ethers.deployContract('CallReceiverMock');

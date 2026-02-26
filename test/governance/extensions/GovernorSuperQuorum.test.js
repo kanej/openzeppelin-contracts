@@ -1,38 +1,43 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { id, parseEther, ZeroHash } from 'ethers';
 import { ProposalState, VoteType } from '../../helpers/enums';
 import { GovernorHelper } from '../../helpers/governance';
-
-const connection = await network.connect();
-const {
-  ethers,
-  helpers: { time },
-  networkHelpers: { loadFixture },
-} = connection;
 
 const TOKENS = [
   { Token: '$ERC20Votes', mode: 'blocknumber' },
   { Token: '$ERC20VotesTimestampMock', mode: 'timestamp' },
 ];
 
-const DEFAULT_ADMIN_ROLE = ethers.ZeroHash;
-const PROPOSER_ROLE = ethers.id('PROPOSER_ROLE');
-const EXECUTOR_ROLE = ethers.id('EXECUTOR_ROLE');
-const CANCELLER_ROLE = ethers.id('CANCELLER_ROLE');
+const DEFAULT_ADMIN_ROLE = ZeroHash;
+const PROPOSER_ROLE = id('PROPOSER_ROLE');
+const EXECUTOR_ROLE = id('EXECUTOR_ROLE');
+const CANCELLER_ROLE = id('CANCELLER_ROLE');
 
 const name = 'OZ-Governor';
 const version = '1';
 const tokenName = 'MockToken';
 const tokenSymbol = 'MTKN';
-const tokenSupply = ethers.parseEther('100');
+const tokenSupply = parseEther('100');
 const votingDelay = 4n;
 const votingPeriod = 16n;
 const quorum = 10n;
 const superQuorum = 40n;
-const value = ethers.parseEther('1');
-const delay = time.duration.hours(1n);
+const value = parseEther('1');
 
 describe('GovernorSuperQuorum', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    helpers: { time },
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  let delay;
+  before(function () {
+    delay = time.duration.hours(1n);
+  });
+
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
       const [proposer, voter1, voter2, voter3, voter4, voter5] = await ethers.getSigners();

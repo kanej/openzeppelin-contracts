@@ -1,4 +1,5 @@
 import { network } from 'hardhat';
+import { Wallet } from 'ethers';
 import { getDomain } from '../../helpers/eip712';
 import { ERC4337Helper } from '../../helpers/erc4337';
 import { MODULE_TYPE_VALIDATOR } from '../../helpers/erc7579';
@@ -8,46 +9,46 @@ import { shouldBehaveLikeAccountERC7579 } from '../extensions/AccountERC7579.beh
 import { shouldBehaveLikeERC1271 } from '../../utils/cryptography/ERC1271.behavior';
 import { shouldBehaveLikeERC7821 } from '../extensions/ERC7821.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture, setBalance },
-} = connection;
-
-async function fixture() {
-  // EOAs and environment
-  const [beneficiary, other] = await ethers.getSigners();
-  const target = await ethers.deployContract('CallReceiverMock');
-  const anotherTarget = await ethers.deployContract('CallReceiverMock');
-
-  // Signer with EIP-7702 support + funding
-  const eoa = ethers.Wallet.createRandom(ethers.provider);
-  await setBalance(eoa.address, ethers.WeiPerEther);
-
-  // ERC-7579 validator module
-  const validator = await ethers.deployContract('$ERC7579ValidatorMock');
-
-  // ERC-4337 account
-  const helper = new ERC4337Helper(connection);
-  const mock = await helper.newAccount('$AccountEIP7702WithModulesMock', ['AccountEIP7702WithModulesMock', '1'], {
-    eip7702signer: eoa,
-  });
-
-  // ERC-4337 Entrypoint domain
-  const entrypointDomain = await getDomain(ethers.predeploy.entrypoint.v09);
-
-  // domain cannot be fetched using getDomain(mock) before the mock is deployed
-  const domain = {
-    name: 'AccountEIP7702WithModulesMock',
-    version: '1',
-    chainId: entrypointDomain.chainId,
-    verifyingContract: mock.address,
-  };
-
-  return { helper, validator, mock, domain, entrypointDomain, eoa, target, anotherTarget, beneficiary, other };
-}
-
 describe('AccountEIP7702WithModules: EIP-7702 account with ERC-7579 modules supports', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture, setBalance },
+  } = connection;
+
+  async function fixture() {
+    // EOAs and environment
+    const [beneficiary, other] = await ethers.getSigners();
+    const target = await ethers.deployContract('CallReceiverMock');
+    const anotherTarget = await ethers.deployContract('CallReceiverMock');
+
+    // Signer with EIP-7702 support + funding
+    const eoa = Wallet.createRandom(ethers.provider);
+    await setBalance(eoa.address, ethers.WeiPerEther);
+
+    // ERC-7579 validator module
+    const validator = await ethers.deployContract('$ERC7579ValidatorMock');
+
+    // ERC-4337 account
+    const helper = new ERC4337Helper(connection);
+    const mock = await helper.newAccount('$AccountEIP7702WithModulesMock', ['AccountEIP7702WithModulesMock', '1'], {
+      eip7702signer: eoa,
+    });
+
+    // ERC-4337 Entrypoint domain
+    const entrypointDomain = await getDomain(ethers.predeploy.entrypoint.v09);
+
+    // domain cannot be fetched using getDomain(mock) before the mock is deployed
+    const domain = {
+      name: 'AccountEIP7702WithModulesMock',
+      version: '1',
+      chainId: entrypointDomain.chainId,
+      verifyingContract: mock.address,
+    };
+
+    return { helper, validator, mock, domain, entrypointDomain, eoa, target, anotherTarget, beneficiary, other };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });
@@ -70,18 +71,18 @@ describe('AccountEIP7702WithModules: EIP-7702 account with ERC-7579 modules supp
   describe('using ERC-7579 validator', function () {
     beforeEach(async function () {
       // signer that adds a prefix to all signatures (except the userOp ones)
-      this.signer = ethers.Wallet.createRandom();
+      this.signer = Wallet.createRandom();
       this.signer.signMessage = message =>
-        ethers.Wallet.prototype.signMessage
+        Wallet.prototype.signMessage
           .bind(this.signer)(message)
           .then(sign => ethers.concat([this.validator.target, sign]));
       this.signer.signTypedData = (domain, types, values) =>
-        ethers.Wallet.prototype.signTypedData
+        Wallet.prototype.signTypedData
           .bind(this.signer)(domain, types, values)
           .then(sign => ethers.concat([this.validator.target, sign]));
 
       this.signUserOp = userOp =>
-        ethers.Wallet.prototype.signTypedData
+        Wallet.prototype.signTypedData
           .bind(this.signer)(this.entrypointDomain, { PackedUserOperation }, userOp.packed)
           .then(signature => Object.assign(userOp, { signature }));
 

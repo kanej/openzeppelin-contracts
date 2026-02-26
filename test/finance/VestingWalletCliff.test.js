@@ -3,36 +3,36 @@ import { expect } from 'chai';
 import { min } from '../helpers/math';
 import { envSetup, shouldBehaveLikeVesting } from './VestingWallet.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  helpers: { time },
-  networkHelpers: { loadFixture },
-} = connection;
-
-async function fixture() {
-  const amount = ethers.parseEther('100');
-  const duration = time.duration.years(4);
-  const start = (await time.clock.timestamp()) + time.duration.hours(1);
-  const cliffDuration = time.duration.years(1);
-  const cliff = start + cliffDuration;
-
-  const [sender, beneficiary] = await ethers.getSigners();
-  const mock = await ethers.deployContract('$VestingWalletCliff', [beneficiary, start, duration, cliffDuration]);
-
-  const token = await ethers.deployContract('$ERC20', ['Name', 'Symbol']);
-  await token.$_mint(mock, amount);
-  await sender.sendTransaction({ to: mock, value: amount });
-
-  const env = await envSetup(connection, mock, beneficiary, token);
-
-  const schedule = Array.from({ length: 64 }, (_, i) => (BigInt(i) * duration) / 60n + start);
-  const vestingFn = timestamp => min(amount, timestamp < cliff ? 0n : (amount * (timestamp - start)) / duration);
-
-  return { mock, duration, start, beneficiary, cliff, schedule, vestingFn, env };
-}
-
 describe('VestingWalletCliff', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    helpers: { time },
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  async function fixture() {
+    const amount = ethers.parseEther('100');
+    const duration = time.duration.years(4);
+    const start = (await time.clock.timestamp()) + time.duration.hours(1);
+    const cliffDuration = time.duration.years(1);
+    const cliff = start + cliffDuration;
+
+    const [sender, beneficiary] = await ethers.getSigners();
+    const mock = await ethers.deployContract('$VestingWalletCliff', [beneficiary, start, duration, cliffDuration]);
+
+    const token = await ethers.deployContract('$ERC20', ['Name', 'Symbol']);
+    await token.$_mint(mock, amount);
+    await sender.sendTransaction({ to: mock, value: amount });
+
+    const env = await envSetup(connection, mock, beneficiary, token);
+
+    const schedule = Array.from({ length: 64 }, (_, i) => (BigInt(i) * duration) / 60n + start);
+    const vestingFn = timestamp => min(amount, timestamp < cliff ? 0n : (amount * (timestamp - start)) / duration);
+
+    return { mock, duration, start, beneficiary, cliff, schedule, vestingFn, env };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });

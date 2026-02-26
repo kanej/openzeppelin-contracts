@@ -1,4 +1,5 @@
 import { network } from 'hardhat';
+import { Wallet } from 'ethers';
 import { getDomain } from '../helpers/eip712';
 import { ERC4337Helper } from '../helpers/erc4337';
 import { PackedUserOperation } from '../helpers/eip712-types';
@@ -6,43 +7,43 @@ import { shouldBehaveLikeAccountCore, shouldBehaveLikeAccountHolder } from './Ac
 import { shouldBehaveLikeERC1271 } from '../utils/cryptography/ERC1271.behavior';
 import { shouldBehaveLikeERC7821 } from './extensions/ERC7821.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
-async function fixture() {
-  // EOAs and environment
-  const [beneficiary, other] = await ethers.getSigners();
-  const target = await ethers.deployContract('CallReceiverMock');
-
-  // ERC-4337 signer
-  const signer = ethers.Wallet.createRandom(ethers.provider);
-
-  // ERC-4337 account
-  const helper = new ERC4337Helper(connection);
-  const mock = await helper.newAccount('$AccountEIP7702Mock', ['AccountEIP7702Mock', '1'], { eip7702signer: signer });
-
-  // ERC-4337 Entrypoint domain
-  const entrypointDomain = await getDomain(ethers.predeploy.entrypoint.v09);
-  // domain cannot be fetched using getDomain(mock) before the mock is deployed
-  const domain = {
-    name: 'AccountEIP7702Mock',
-    version: '1',
-    chainId: entrypointDomain.chainId,
-    verifyingContract: mock.address,
-  };
-
-  const signUserOp = userOp =>
-    signer
-      .signTypedData(entrypointDomain, { PackedUserOperation }, userOp.packed)
-      .then(signature => Object.assign(userOp, { signature }));
-
-  return { helper, mock, domain, signer, target, beneficiary, other, signUserOp };
-}
-
 describe('AccountEIP7702', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  async function fixture() {
+    // EOAs and environment
+    const [beneficiary, other] = await ethers.getSigners();
+    const target = await ethers.deployContract('CallReceiverMock');
+
+    // ERC-4337 signer
+    const signer = Wallet.createRandom(ethers.provider);
+
+    // ERC-4337 account
+    const helper = new ERC4337Helper(connection);
+    const mock = await helper.newAccount('$AccountEIP7702Mock', ['AccountEIP7702Mock', '1'], { eip7702signer: signer });
+
+    // ERC-4337 Entrypoint domain
+    const entrypointDomain = await getDomain(ethers.predeploy.entrypoint.v09);
+    // domain cannot be fetched using getDomain(mock) before the mock is deployed
+    const domain = {
+      name: 'AccountEIP7702Mock',
+      version: '1',
+      chainId: entrypointDomain.chainId,
+      verifyingContract: mock.address,
+    };
+
+    const signUserOp = userOp =>
+      signer
+        .signTypedData(entrypointDomain, { PackedUserOperation }, userOp.packed)
+        .then(signature => Object.assign(userOp, { signature }));
+
+    return { helper, mock, domain, signer, target, beneficiary, other, signUserOp };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });

@@ -1,71 +1,76 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { AbiCoder, id, ZeroHash } from 'ethers';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 import { GovernorHelper } from '../helpers/governance';
 import { OperationState } from '../helpers/enums';
 import { shouldSupportInterfaces } from '../utils/introspection/SupportsInterface.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  helpers: { time },
-  networkHelpers: { loadFixture },
-} = connection;
-
 const salt = '0x025e7b0be353a74631ad648c667493c0e1cd31caa4cc2d3520fdc171ea0cc726'; // a random value
 
-const MINDELAY = time.duration.days(1);
-const DEFAULT_ADMIN_ROLE = ethers.ZeroHash;
-const PROPOSER_ROLE = ethers.id('PROPOSER_ROLE');
-const EXECUTOR_ROLE = ethers.id('EXECUTOR_ROLE');
-const CANCELLER_ROLE = ethers.id('CANCELLER_ROLE');
+const DEFAULT_ADMIN_ROLE = ZeroHash;
+const PROPOSER_ROLE = id('PROPOSER_ROLE');
+const EXECUTOR_ROLE = id('EXECUTOR_ROLE');
+const CANCELLER_ROLE = id('CANCELLER_ROLE');
 
 const getAddress = obj => obj.address ?? obj.target ?? obj;
 
-function genOperation(target, value, data, predecessor, salt) {
-  const id = ethers.keccak256(
-    ethers.AbiCoder.defaultAbiCoder().encode(
-      ['address', 'uint256', 'bytes', 'uint256', 'bytes32'],
-      [getAddress(target), value, data, predecessor, salt],
-    ),
-  );
-  return { id, target, value, data, predecessor, salt };
-}
-
-function genOperationBatch(targets, values, payloads, predecessor, salt) {
-  const id = ethers.keccak256(
-    ethers.AbiCoder.defaultAbiCoder().encode(
-      ['address[]', 'uint256[]', 'bytes[]', 'uint256', 'bytes32'],
-      [targets.map(getAddress), values, payloads, predecessor, salt],
-    ),
-  );
-  return { id, targets, values, payloads, predecessor, salt };
-}
-
-async function fixture() {
-  const [admin, proposer, canceller, executor, other] = await ethers.getSigners();
-
-  const mock = await ethers.deployContract('TimelockController', [MINDELAY, [proposer], [executor], admin]);
-  const callreceivermock = await ethers.deployContract('CallReceiverMock');
-  const implementation2 = await ethers.deployContract('Implementation2');
-
-  expect(await mock.hasRole(CANCELLER_ROLE, proposer)).to.be.true;
-  await mock.connect(admin).revokeRole(CANCELLER_ROLE, proposer);
-  await mock.connect(admin).grantRole(CANCELLER_ROLE, canceller);
-
-  return {
-    admin,
-    proposer,
-    canceller,
-    executor,
-    other,
-    mock,
-    callreceivermock,
-    implementation2,
-  };
-}
-
 describe('TimelockController', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    helpers: { time },
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  let MINDELAY;
+  before(function () {
+    MINDELAY = time.duration.days(1);
+  });
+
+  function genOperation(target, value, data, predecessor, salt) {
+    const id = ethers.keccak256(
+      AbiCoder.defaultAbiCoder().encode(
+        ['address', 'uint256', 'bytes', 'uint256', 'bytes32'],
+        [getAddress(target), value, data, predecessor, salt],
+      ),
+    );
+    return { id, target, value, data, predecessor, salt };
+  }
+
+  function genOperationBatch(targets, values, payloads, predecessor, salt) {
+    const id = ethers.keccak256(
+      AbiCoder.defaultAbiCoder().encode(
+        ['address[]', 'uint256[]', 'bytes[]', 'uint256', 'bytes32'],
+        [targets.map(getAddress), values, payloads, predecessor, salt],
+      ),
+    );
+    return { id, targets, values, payloads, predecessor, salt };
+  }
+
+  async function fixture() {
+    const [admin, proposer, canceller, executor, other] = await ethers.getSigners();
+
+    const mock = await ethers.deployContract('TimelockController', [MINDELAY, [proposer], [executor], admin]);
+    const callreceivermock = await ethers.deployContract('CallReceiverMock');
+    const implementation2 = await ethers.deployContract('Implementation2');
+
+    expect(await mock.hasRole(CANCELLER_ROLE, proposer)).to.be.true;
+    await mock.connect(admin).revokeRole(CANCELLER_ROLE, proposer);
+    await mock.connect(admin).grantRole(CANCELLER_ROLE, canceller);
+
+    return {
+      admin,
+      proposer,
+      canceller,
+      executor,
+      other,
+      mock,
+      callreceivermock,
+      implementation2,
+    };
+  }
+
   beforeEach(async function () {
     Object.assign(this, await loadFixture(fixture));
   });

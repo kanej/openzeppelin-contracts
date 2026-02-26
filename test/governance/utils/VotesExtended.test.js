@@ -1,24 +1,25 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { parseEther, Typed } from 'ethers';
 import { zip } from '../../helpers/iterate';
 import { sum } from '../../helpers/math';
 import { shouldBehaveLikeVotes } from './Votes.behavior';
-
-const connection = await network.connect();
-const {
-  ethers,
-  helpers: { time },
-  networkHelpers: { loadFixture, mine },
-} = connection;
 
 const MODES = {
   blocknumber: '$VotesExtendedMock',
   timestamp: '$VotesExtendedTimestampMock',
 };
 
-const AMOUNTS = [ethers.parseEther('10000000'), 10n, 20n];
+const AMOUNTS = [parseEther('10000000'), 10n, 20n];
 
 describe('VotesExtended', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    helpers: { time },
+    networkHelpers: { loadFixture, mine },
+  } = connection;
+
   for (const [mode, artifact] of Object.entries(MODES)) {
     const fixture = async () => {
       const accounts = await ethers.getSigners();
@@ -70,14 +71,14 @@ describe('VotesExtended', function () {
           expect(await this.votes.delegates(this.accounts[0])).to.equal(ethers.ZeroAddress);
           expect(await this.votes.delegates(this.accounts[1])).to.equal(ethers.ZeroAddress);
 
-          await this.votes.delegate(this.accounts[0], ethers.Typed.address(this.accounts[0]));
+          await this.votes.delegate(this.accounts[0], Typed.address(this.accounts[0]));
 
           expect(await this.votes.getVotes(this.accounts[0])).to.equal(this.amounts[this.accounts[0].address]);
           expect(await this.votes.getVotes(this.accounts[1])).to.equal(0n);
           expect(await this.votes.delegates(this.accounts[0])).to.equal(this.accounts[0]);
           expect(await this.votes.delegates(this.accounts[1])).to.equal(ethers.ZeroAddress);
 
-          await this.votes.delegate(this.accounts[1], ethers.Typed.address(this.accounts[0]));
+          await this.votes.delegate(this.accounts[1], Typed.address(this.accounts[0]));
 
           expect(await this.votes.getVotes(this.accounts[0])).to.equal(
             this.amounts[this.accounts[0].address] + this.amounts[this.accounts[1].address],
@@ -88,8 +89,8 @@ describe('VotesExtended', function () {
         });
 
         it('cross delegates', async function () {
-          await this.votes.delegate(this.accounts[0], ethers.Typed.address(this.accounts[1]));
-          await this.votes.delegate(this.accounts[1], ethers.Typed.address(this.accounts[0]));
+          await this.votes.delegate(this.accounts[0], Typed.address(this.accounts[1]));
+          await this.votes.delegate(this.accounts[1], Typed.address(this.accounts[0]));
 
           expect(await this.votes.getVotes(this.accounts[0])).to.equal(this.amounts[this.accounts[1].address]);
           expect(await this.votes.getVotes(this.accounts[1])).to.equal(this.amounts[this.accounts[0].address]);
@@ -108,7 +109,7 @@ describe('VotesExtended', function () {
       });
 
       it('checkpoint delegates', async function () {
-        const tx = await this.votes.delegate(this.accounts[0], ethers.Typed.address(this.accounts[1]));
+        const tx = await this.votes.delegate(this.accounts[0], Typed.address(this.accounts[1]));
         const timepoint = await time.clockFromReceipt[mode](tx);
         await mine(2);
 
@@ -118,7 +119,7 @@ describe('VotesExtended', function () {
       });
 
       it('reverts if current timepoint <= timepoint', async function () {
-        const tx = await this.votes.delegate(this.accounts[0], ethers.Typed.address(this.accounts[1]));
+        const tx = await this.votes.delegate(this.accounts[0], Typed.address(this.accounts[1]));
         const timepoint = await time.clockFromReceipt[mode](tx);
 
         await expect(this.votes.getPastDelegate(this.accounts[0], timepoint + 1n))
