@@ -5,23 +5,23 @@ import {
   shouldBehaveLikeERC721Enumerable,
 } from './ERC721.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
 const name = 'Non Fungible Token';
 const symbol = 'NFT';
 
-async function fixture() {
-  return {
-    accounts: await ethers.getSigners(),
-    token: await ethers.deployContract('$ERC721Enumerable', [name, symbol]),
-  };
-}
-
 describe('ERC721', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  async function fixture() {
+    return {
+      accounts: await ethers.getSigners(),
+      token: await ethers.deployContract('$ERC721Enumerable', [name, symbol]),
+    };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });

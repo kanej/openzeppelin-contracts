@@ -3,26 +3,26 @@ import { expect } from 'chai';
 import { shouldBehaveLikeERC20 } from '../ERC20.behavior';
 import { shouldSupportInterfaces } from '../../../utils/introspection/SupportsInterface.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
 const name = 'My Token';
 const symbol = 'MTKN';
 const initialSupply = 100n;
 
-async function fixture() {
-  const [other, bridge, ...accounts] = await ethers.getSigners();
-
-  const token = await ethers.deployContract('$ERC20BridgeableMock', [name, symbol, bridge]);
-  await token.$_mint(accounts[0], initialSupply);
-
-  return { bridge, other, accounts, token };
-}
-
 describe('ERC20Bridgeable', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  async function fixture() {
+    const [other, bridge, ...accounts] = await ethers.getSigners();
+
+    const token = await ethers.deployContract('$ERC20BridgeableMock', [name, symbol, bridge]);
+    await token.$_mint(accounts[0], initialSupply);
+
+    return { bridge, other, accounts, token };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });

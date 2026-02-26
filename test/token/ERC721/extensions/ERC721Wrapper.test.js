@@ -2,30 +2,30 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { shouldBehaveLikeERC721 } from '../ERC721.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
 const name = 'Non Fungible Token';
 const symbol = 'NFT';
 const tokenId = 1n;
 const otherTokenId = 2n;
 
-async function fixture() {
-  const accounts = await ethers.getSigners();
-  const [owner, approved, other] = accounts;
-
-  const underlying = await ethers.deployContract('$ERC721', [name, symbol]);
-  await underlying.$_safeMint(owner, tokenId);
-  await underlying.$_safeMint(owner, otherTokenId);
-  const token = await ethers.deployContract('$ERC721Wrapper', [`Wrapped ${name}`, `W${symbol}`, underlying]);
-
-  return { accounts, owner, approved, other, underlying, token };
-}
-
 describe('ERC721Wrapper', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  async function fixture() {
+    const accounts = await ethers.getSigners();
+    const [owner, approved, other] = accounts;
+
+    const underlying = await ethers.deployContract('$ERC721', [name, symbol]);
+    await underlying.$_safeMint(owner, tokenId);
+    await underlying.$_safeMint(owner, otherTokenId);
+    const token = await ethers.deployContract('$ERC721Wrapper', [`Wrapped ${name}`, `W${symbol}`, underlying]);
+
+    return { accounts, owner, approved, other, underlying, token };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });

@@ -1,13 +1,7 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { parseEther } from 'ethers';
 import { shouldBehaveLikeVotes } from '../../../governance/utils/Votes.behavior';
-
-const connection = await network.connect();
-const {
-  ethers,
-  helpers: { time },
-  networkHelpers: { loadFixture, mine },
-} = connection;
 
 const TOKENS = [
   { Token: '$ERC721Votes', mode: 'blocknumber' },
@@ -17,9 +11,16 @@ const TOKENS = [
 const name = 'My Vote';
 const symbol = 'MTKN';
 const version = '1';
-const tokens = [ethers.parseEther('10000000'), 10n, 20n, 30n];
+const tokens = [parseEther('10000000'), 10n, 20n, 30n];
 
 describe('ERC721Votes', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    helpers: { time },
+    networkHelpers: { loadFixture, mine },
+  } = connection;
+
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
       // accounts is required by shouldBehaveLikeVotes

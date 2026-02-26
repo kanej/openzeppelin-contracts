@@ -4,43 +4,44 @@ import { shouldBehaveLikeERC20, shouldBehaveLikeERC20Transfer, shouldBehaveLikeE
 import { shouldSupportInterfaces } from '../../../utils/introspection/SupportsInterface.behavior';
 import { RevertType } from '../../../helpers/enums';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
 const name = 'My Token';
 const symbol = 'MTKN';
 const value = 1000n;
 const data = '0x123456';
 
-async function fixture() {
-  // this.accounts is used by shouldBehaveLikeERC20
-  const accounts = await ethers.getSigners();
-  const [holder, other] = accounts;
-
-  const receiver = await ethers.deployContract('ERC1363ReceiverMock');
-  const spender = await ethers.deployContract('ERC1363SpenderMock');
-  const token = await ethers.deployContract('$ERC1363', [name, symbol]);
-
-  await token.$_mint(holder, value);
-
-  return {
-    accounts,
-    holder,
-    other,
-    token,
-    receiver,
-    spender,
-    selectors: {
-      onTransferReceived: receiver.interface.getFunction('onTransferReceived(address,address,uint256,bytes)').selector,
-      onApprovalReceived: spender.interface.getFunction('onApprovalReceived(address,uint256,bytes)').selector,
-    },
-  };
-}
-
 describe('ERC1363', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  async function fixture() {
+    // this.accounts is used by shouldBehaveLikeERC20
+    const accounts = await ethers.getSigners();
+    const [holder, other] = accounts;
+
+    const receiver = await ethers.deployContract('ERC1363ReceiverMock');
+    const spender = await ethers.deployContract('ERC1363SpenderMock');
+    const token = await ethers.deployContract('$ERC1363', [name, symbol]);
+
+    await token.$_mint(holder, value);
+
+    return {
+      accounts,
+      holder,
+      other,
+      token,
+      receiver,
+      spender,
+      selectors: {
+        onTransferReceived: receiver.interface.getFunction('onTransferReceived(address,address,uint256,bytes)')
+          .selector,
+        onApprovalReceived: spender.interface.getFunction('onApprovalReceived(address,uint256,bytes)').selector,
+      },
+    };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });

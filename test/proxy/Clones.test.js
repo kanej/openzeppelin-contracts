@@ -1,88 +1,84 @@
 import { network } from 'hardhat';
 import { expect } from 'chai';
+import { Typed } from 'ethers';
 import { generators } from '../helpers/random';
 import { shouldBehaveLikeClone } from './Clones.behaviour';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
-const cloneInitCode = (instance, args = undefined) =>
-  args
-    ? ethers.concat([
-        '0x61',
-        ethers.toBeHex(0x2d + ethers.getBytes(args).length, 2),
-        '0x3d81600a3d39f3363d3d373d3d3d363d73',
-        instance.target ?? instance.address ?? instance,
-        '0x5af43d82803e903d91602b57fd5bf3',
-        args,
-      ])
-    : ethers.concat([
-        '0x3d602d80600a3d3981f3363d3d373d3d3d363d73',
-        instance.target ?? instance.address ?? instance,
-        '0x5af43d82803e903d91602b57fd5bf3',
-      ]);
-
-async function fixture() {
-  const [deployer] = await ethers.getSigners();
-
-  const factory = await ethers.deployContract('$Clones');
-  const implementation = await ethers.deployContract('DummyImplementation');
-
-  const newClone =
-    args =>
-    async (opts = {}) => {
-      const clone = await (
-        args
-          ? factory.$cloneWithImmutableArgs.staticCall(implementation, args)
-          : factory.$clone.staticCall(implementation)
-      ).then(address => implementation.attach(address));
-      const tx = await (args
-        ? opts.deployValue
-          ? factory.$cloneWithImmutableArgs(implementation, args, ethers.Typed.uint256(opts.deployValue))
-          : factory.$cloneWithImmutableArgs(implementation, args)
-        : opts.deployValue
-          ? factory.$clone(implementation, ethers.Typed.uint256(opts.deployValue))
-          : factory.$clone(implementation));
-      if (opts.initData || opts.initValue) {
-        await deployer.sendTransaction({ to: clone, value: opts.initValue ?? 0n, data: opts.initData ?? '0x' });
-      }
-      return Object.assign(clone, { deploymentTransaction: () => tx });
-    };
-
-  const newCloneDeterministic =
-    args =>
-    async (opts = {}) => {
-      const salt = opts.salt ?? ethers.randomBytes(32);
-      const clone = await (
-        args
-          ? factory.$cloneDeterministicWithImmutableArgs.staticCall(implementation, args, salt)
-          : factory.$cloneDeterministic.staticCall(implementation, salt)
-      ).then(address => implementation.attach(address));
-      const tx = await (args
-        ? opts.deployValue
-          ? factory.$cloneDeterministicWithImmutableArgs(
-              implementation,
-              args,
-              salt,
-              ethers.Typed.uint256(opts.deployValue),
-            )
-          : factory.$cloneDeterministicWithImmutableArgs(implementation, args, salt)
-        : opts.deployValue
-          ? factory.$cloneDeterministic(implementation, salt, ethers.Typed.uint256(opts.deployValue))
-          : factory.$cloneDeterministic(implementation, salt));
-      if (opts.initData || opts.initValue) {
-        await deployer.sendTransaction({ to: clone, value: opts.initValue ?? 0n, data: opts.initData ?? '0x' });
-      }
-      return Object.assign(clone, { deploymentTransaction: () => tx });
-    };
-
-  return { deployer, factory, implementation, newClone, newCloneDeterministic };
-}
-
 describe('Clones', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  const cloneInitCode = (instance, args = undefined) =>
+    args
+      ? ethers.concat([
+          '0x61',
+          ethers.toBeHex(0x2d + ethers.getBytes(args).length, 2),
+          '0x3d81600a3d39f3363d3d373d3d3d363d73',
+          instance.target ?? instance.address ?? instance,
+          '0x5af43d82803e903d91602b57fd5bf3',
+          args,
+        ])
+      : ethers.concat([
+          '0x3d602d80600a3d3981f3363d3d373d3d3d363d73',
+          instance.target ?? instance.address ?? instance,
+          '0x5af43d82803e903d91602b57fd5bf3',
+        ]);
+
+  async function fixture() {
+    const [deployer] = await ethers.getSigners();
+
+    const factory = await ethers.deployContract('$Clones');
+    const implementation = await ethers.deployContract('DummyImplementation');
+
+    const newClone =
+      args =>
+      async (opts = {}) => {
+        const clone = await (
+          args
+            ? factory.$cloneWithImmutableArgs.staticCall(implementation, args)
+            : factory.$clone.staticCall(implementation)
+        ).then(address => implementation.attach(address));
+        const tx = await (args
+          ? opts.deployValue
+            ? factory.$cloneWithImmutableArgs(implementation, args, Typed.uint256(opts.deployValue))
+            : factory.$cloneWithImmutableArgs(implementation, args)
+          : opts.deployValue
+            ? factory.$clone(implementation, Typed.uint256(opts.deployValue))
+            : factory.$clone(implementation));
+        if (opts.initData || opts.initValue) {
+          await deployer.sendTransaction({ to: clone, value: opts.initValue ?? 0n, data: opts.initData ?? '0x' });
+        }
+        return Object.assign(clone, { deploymentTransaction: () => tx });
+      };
+
+    const newCloneDeterministic =
+      args =>
+      async (opts = {}) => {
+        const salt = opts.salt ?? ethers.randomBytes(32);
+        const clone = await (
+          args
+            ? factory.$cloneDeterministicWithImmutableArgs.staticCall(implementation, args, salt)
+            : factory.$cloneDeterministic.staticCall(implementation, salt)
+        ).then(address => implementation.attach(address));
+        const tx = await (args
+          ? opts.deployValue
+            ? factory.$cloneDeterministicWithImmutableArgs(implementation, args, salt, Typed.uint256(opts.deployValue))
+            : factory.$cloneDeterministicWithImmutableArgs(implementation, args, salt)
+          : opts.deployValue
+            ? factory.$cloneDeterministic(implementation, salt, Typed.uint256(opts.deployValue))
+            : factory.$cloneDeterministic(implementation, salt));
+        if (opts.initData || opts.initValue) {
+          await deployer.sendTransaction({ to: clone, value: opts.initValue ?? 0n, data: opts.initData ?? '0x' });
+        }
+        return Object.assign(clone, { deploymentTransaction: () => tx });
+      };
+
+    return { deployer, factory, implementation, newClone, newCloneDeterministic };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });

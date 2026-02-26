@@ -2,31 +2,31 @@ import { network } from 'hardhat';
 import { expect } from 'chai';
 import { shouldBehaveLikeERC20 } from '../ERC20.behavior';
 
-const connection = await network.connect();
-const {
-  ethers,
-  networkHelpers: { loadFixture },
-} = connection;
-
 const name = 'My Token';
 const symbol = 'MTKN';
 const decimals = 9n;
 const initialSupply = 100n;
 
-async function fixture() {
-  // this.accounts is used by shouldBehaveLikeERC20
-  const accounts = await ethers.getSigners();
-  const [holder, recipient, other] = accounts;
-
-  const underlying = await ethers.deployContract('$ERC20DecimalsMock', [name, symbol, decimals]);
-  await underlying.$_mint(holder, initialSupply);
-
-  const token = await ethers.deployContract('$ERC20Wrapper', [`Wrapped ${name}`, `W${symbol}`, underlying]);
-
-  return { accounts, holder, recipient, other, underlying, token };
-}
-
 describe('ERC20Wrapper', function () {
+  const connection = network.mocha.connectOnBefore();
+  const {
+    ethers,
+    networkHelpers: { loadFixture },
+  } = connection;
+
+  async function fixture() {
+    // this.accounts is used by shouldBehaveLikeERC20
+    const accounts = await ethers.getSigners();
+    const [holder, recipient, other] = accounts;
+
+    const underlying = await ethers.deployContract('$ERC20DecimalsMock', [name, symbol, decimals]);
+    await underlying.$_mint(holder, initialSupply);
+
+    const token = await ethers.deployContract('$ERC20Wrapper', [`Wrapped ${name}`, `W${symbol}`, underlying]);
+
+    return { accounts, holder, recipient, other, underlying, token };
+  }
+
   beforeEach(async function () {
     Object.assign(this, connection, await loadFixture(fixture));
   });
