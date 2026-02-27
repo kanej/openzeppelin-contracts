@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 import { Wallet } from 'ethers';
 import { sum } from '../../../helpers/math';
@@ -10,7 +10,7 @@ describe('ERC721Consecutive', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   for (const offset of [0n, 1n, 42n]) {
     describe(`with offset ${offset}`, function () {

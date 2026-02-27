@@ -1,11 +1,11 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { Typed } from 'ethers';
 import { CHAINS, getLocalChain } from '../helpers/chains';
 import { generators } from '../helpers/random';
 
 describe('CAIP utilities', function () {
-  const { ethers } = network.mocha.connectOnBefore();
+  const { ethers } = connectOnTestSuiteStart();
 
   before(async function () {
     this.local = await getLocalChain(ethers.provider);

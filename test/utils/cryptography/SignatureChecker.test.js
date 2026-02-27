@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { hashMessage, id, Typed } from 'ethers';
 import * as precompile from '../../helpers/precompiles';
@@ -17,7 +17,7 @@ describe('SignatureChecker (ERC1271)', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [signer, extraSigner, other] = await ethers.getSigners();

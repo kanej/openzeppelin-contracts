@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { ZeroHash, keccak256, concat, Typed, AbiCoder } from 'ethers';
 
@@ -8,7 +8,7 @@ describe('SimulateCall', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [receiver, other] = await ethers.getSigners();

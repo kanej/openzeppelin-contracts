@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { toBigInt } from 'ethers';
 import { generators } from '../helpers/random';
@@ -25,7 +25,7 @@ describe('Arrays', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     return { mock: await ethers.deployContract('$Arrays') };

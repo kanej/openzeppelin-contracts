@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import {
   shouldBehaveLikeAccessControl,
@@ -6,7 +6,7 @@ import {
 } from '../AccessControl.behavior';
 
 describe('AccessControlDefaultAdminRules', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     helpers,

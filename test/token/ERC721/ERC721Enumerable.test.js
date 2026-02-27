@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import {
   shouldBehaveLikeERC721,
   shouldBehaveLikeERC721Metadata,
@@ -9,7 +9,7 @@ const name = 'Non Fungible Token';
 const symbol = 'NFT';
 
 describe('ERC721', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

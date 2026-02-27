@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 import { parseEther, ZeroAddress, MaxUint256, Signature, verifyTypedData } from 'ethers';
 import { Delegation, getDomain } from '../../../helpers/eip712';
@@ -16,7 +16,7 @@ const version = '1';
 const supply = parseEther('10000000');
 
 describe('ERC20Votes', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     helpers: { time },

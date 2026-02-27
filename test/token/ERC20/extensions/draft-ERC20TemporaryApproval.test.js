@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 import { MaxUint256 } from 'ethers';
 import { max, min } from '../../../helpers/math';
@@ -9,7 +9,7 @@ const symbol = 'MTKN';
 const initialSupply = 100n;
 
 describe('ERC20TemporaryApproval', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

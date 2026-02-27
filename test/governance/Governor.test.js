@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { parseEther } from 'ethers';
 import { Ballot, getDomain } from '../helpers/eip712';
@@ -23,7 +23,7 @@ const votingPeriod = 16n;
 const value = parseEther('1');
 
 describe('Governor', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     helpers: { time },

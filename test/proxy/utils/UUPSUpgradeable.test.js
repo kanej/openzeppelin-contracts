@@ -1,10 +1,10 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { id } from 'ethers';
 import { ImplementationLabel } from '../../helpers/storage';
 
 describe('UUPSUpgradeable', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     helpers: { storage },

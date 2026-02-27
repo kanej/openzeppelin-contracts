@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 
 describe('AccessManaged', function () {
@@ -6,7 +6,7 @@ describe('AccessManaged', function () {
     ethers,
     helpers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [admin, roleMember, other] = await ethers.getSigners();

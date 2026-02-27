@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { id, Signature, toBigInt, ZeroHash } from 'ethers';
@@ -11,7 +11,7 @@ describe('ECDSA', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [signer] = await ethers.getSigners();

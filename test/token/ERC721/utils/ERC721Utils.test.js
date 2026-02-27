@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
 import { RevertType } from '../../../helpers/enums';
@@ -11,7 +11,7 @@ describe('ERC721Utils', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   const deployReceiver = (revertType, returnValue = RECEIVER_MAGIC_VALUE) =>
     ethers.deployContract('$ERC721ReceiverMock', [returnValue, revertType]);

@@ -1,8 +1,8 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { DEFAULT_ADMIN_ROLE, shouldBehaveLikeAccessControl } from './AccessControl.behavior';
 
 describe('AccessControl', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

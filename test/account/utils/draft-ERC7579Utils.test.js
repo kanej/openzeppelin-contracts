@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { AbiCoder } from 'ethers';
 import {
@@ -18,7 +18,7 @@ describe('ERC7579Utils', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   const fixture = async () => {
     const [sender] = await ethers.getSigners();

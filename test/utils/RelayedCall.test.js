@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { Typed } from 'ethers';
 
@@ -7,7 +7,7 @@ describe('RelayedCall', function () {
     ethers,
     helpers: { impersonate },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [admin, receiver, other] = await ethers.getSigners();

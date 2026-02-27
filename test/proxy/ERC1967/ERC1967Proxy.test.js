@@ -1,8 +1,8 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { shouldBehaveLikeProxy } from '../Proxy.behaviour';
 
 describe('ERC1967Proxy', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 
 for (const variant of ['', 'Transient']) {
@@ -6,7 +6,7 @@ for (const variant of ['', 'Transient']) {
     const {
       ethers,
       networkHelpers: { loadFixture },
-    } = network.mocha.connectOnBefore();
+    } = connectOnTestSuiteStart();
 
     async function fixture() {
       const name = `Reentrancy${variant}Mock`;

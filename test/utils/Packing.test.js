@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { hexlify, randomBytes, concat, toNumber } from 'ethers';
 import { product } from '../helpers/iterate';
@@ -8,7 +8,7 @@ describe('Packing', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     return { mock: await ethers.deployContract('$Packing') };

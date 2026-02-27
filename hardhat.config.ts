@@ -75,7 +75,7 @@ export default defineConfig({
       },
     },
     mocha: {
-      parallel: true,
+      parallel: false,
     },
   },
   warnings: {

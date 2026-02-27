@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { shouldBehaveLikeERC6909 } from './ERC6909.behavior';
 
@@ -6,7 +6,7 @@ describe('ERC6909', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [holder, operator, recipient, other] = await ethers.getSigners();

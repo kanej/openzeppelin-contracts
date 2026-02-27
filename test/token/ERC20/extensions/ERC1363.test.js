@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 import { shouldBehaveLikeERC20, shouldBehaveLikeERC20Transfer, shouldBehaveLikeERC20Approve } from '../ERC20.behavior';
 import { shouldSupportInterfaces } from '../../../utils/introspection/SupportsInterface.behavior';
@@ -10,7 +10,7 @@ const value = 1000n;
 const data = '0x123456';
 
 describe('ERC1363', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

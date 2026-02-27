@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { AbiCoder, parseEther } from 'ethers';
 import { getDomain, ExtendedBallot } from '../../helpers/eip712';
@@ -25,7 +25,7 @@ const params = {
 };
 
 describe('GovernorWithParams', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { AbiCoder, toBigInt } from 'ethers';
 import { erc7201Slot } from '../helpers/storage';
@@ -8,7 +8,7 @@ describe('SlotDerivation', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [account] = await ethers.getSigners();

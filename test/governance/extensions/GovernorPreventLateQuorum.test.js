@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { parseEther } from 'ethers';
 import { ProposalState, VoteType } from '../../helpers/enums';
@@ -21,7 +21,7 @@ const quorum = parseEther('1');
 const value = parseEther('1');
 
 describe('GovernorPreventLateQuorum', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     helpers: { time },

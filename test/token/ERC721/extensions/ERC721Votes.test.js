@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 import { parseEther } from 'ethers';
 import { shouldBehaveLikeVotes } from '../../../governance/utils/Votes.behavior';
@@ -14,7 +14,7 @@ const version = '1';
 const tokens = [parseEther('10000000'), 10n, 20n, 30n];
 
 describe('ERC721Votes', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     helpers: { time },

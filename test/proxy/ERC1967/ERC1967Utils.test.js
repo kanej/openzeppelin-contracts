@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { ImplementationLabel, AdminLabel, BeaconLabel } from '../../helpers/storage';
 
@@ -7,7 +7,7 @@ describe('ERC1967Utils', function () {
     ethers,
     helpers: { storage },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [, admin, anotherAccount] = await ethers.getSigners();

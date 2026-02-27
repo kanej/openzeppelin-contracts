@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { MerklePatriciaTrie, createMerkleProof } from '@ethereumjs/mpt';
 import { encodeRlp, stripZerosLeft } from 'ethers';
@@ -32,7 +32,7 @@ describe('TrieProof', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const mock = await ethers.deployContract('$TrieProof');

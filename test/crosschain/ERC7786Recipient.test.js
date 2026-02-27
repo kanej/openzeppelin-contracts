@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { generators } from '../helpers/random';
 
@@ -12,7 +12,7 @@ describe('ERC7786Recipient', function () {
     ethers,
     helpers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [sender, notAGateway] = await ethers.getSigners();

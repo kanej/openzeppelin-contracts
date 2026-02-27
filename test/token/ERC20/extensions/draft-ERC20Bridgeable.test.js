@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 import { shouldBehaveLikeERC20 } from '../ERC20.behavior';
 import { shouldSupportInterfaces } from '../../../utils/introspection/SupportsInterface.behavior';
@@ -8,7 +8,7 @@ const symbol = 'MTKN';
 const initialSupply = 100n;
 
 describe('ERC20Bridgeable', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

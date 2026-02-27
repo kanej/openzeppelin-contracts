@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { Typed } from 'ethers';
 import { RevertType } from '../../helpers/enums';
@@ -8,7 +8,7 @@ import { shouldBehaveLikeERC1155 } from './ERC1155.behavior';
 const initialURI = 'https://token-cdn-domain/{id}.json';
 
 describe('ERC1155', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

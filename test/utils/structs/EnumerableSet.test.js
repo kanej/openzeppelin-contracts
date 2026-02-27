@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { mapValues } from '../../helpers/iterate';
 import { generators } from '../../helpers/random';
 import { SET_TYPES } from '../../../scripts/generate/templates/Enumerable.opts';
@@ -16,7 +16,7 @@ describe('EnumerableSet', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const mock = await ethers.deployContract('$EnumerableSet');

@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { BeaconLabel } from '../../helpers/storage';
 
@@ -7,7 +7,7 @@ describe('BeaconProxy', function () {
     ethers,
     helpers: { storage },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [admin, other] = await ethers.getSigners();

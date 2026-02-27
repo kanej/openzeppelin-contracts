@@ -1,11 +1,11 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { Typed } from 'ethers';
 import { generators } from '../helpers/random';
 import { shouldBehaveLikeClone } from './Clones.behaviour';
 
 describe('Clones', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { getDomain, domainSeparator, hashTypedData } from '../../helpers/eip712';
 import { formatType } from '../../helpers/eip712-types';
@@ -12,7 +12,7 @@ describe('EIP712', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   const fixture = async () => {
     const [from, to] = await ethers.getSigners();

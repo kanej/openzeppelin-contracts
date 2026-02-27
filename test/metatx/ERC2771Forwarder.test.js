@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { ForwardRequest, getDomain } from '../helpers/eip712';
 import { sum } from '../helpers/math';
@@ -8,7 +8,7 @@ describe('ERC2771Forwarder', function () {
     ethers,
     helpers: { time },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [sender, refundReceiver, another, ...accounts] = await ethers.getSigners();

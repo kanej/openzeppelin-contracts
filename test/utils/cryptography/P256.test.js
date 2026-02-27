@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import {
   getBytes,
@@ -33,7 +33,7 @@ describe('P256', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     return { mock: await ethers.deployContract('$P256') };

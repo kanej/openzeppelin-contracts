@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { AbiCoder, Typed, TypedDataEncoder } from 'ethers';
 import { Permit } from '../../helpers/eip712';
@@ -10,7 +10,7 @@ describe('ERC7739Utils', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   const fixture = async () => {
     const mock = await ethers.deployContract('$ERC7739Utils');

@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 
 const name = 'Non Fungible Token';
@@ -6,7 +6,7 @@ const symbol = 'NFT';
 const tokenId = 1n;
 
 describe('ERC721Holder', function () {
-  const { ethers } = network.mocha.connectOnBefore();
+  const { ethers } = connectOnTestSuiteStart();
 
   it('receives an ERC721 token', async function () {
     const [owner] = await ethers.getSigners();

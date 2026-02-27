@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { getDomain } from '../helpers/eip712';
 import { ERC4337Helper } from '../helpers/erc4337';
 import { PackedUserOperation } from '../helpers/eip712-types';
@@ -8,7 +8,7 @@ import { shouldBehaveLikeERC1271 } from '../utils/cryptography/ERC1271.behavior'
 import { shouldBehaveLikeERC7821 } from './extensions/ERC7821.behavior';
 
 describe('AccountRSA', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

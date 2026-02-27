@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { AbiCoder, id, ZeroHash } from 'ethers';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
@@ -16,7 +16,7 @@ const CANCELLER_ROLE = id('CANCELLER_ROLE');
 const getAddress = obj => obj.address ?? obj.target ?? obj;
 
 describe('TimelockController', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     helpers: { time },

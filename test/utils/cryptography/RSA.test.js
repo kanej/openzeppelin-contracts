@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { sha256, stripZerosLeft, toBigInt, toBeHex, toUtf8Bytes, Typed } from 'ethers';
 import { parse } from './RSA.helper';
@@ -7,7 +7,7 @@ describe('RSA', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     return { mock: await ethers.deployContract('$RSA') };

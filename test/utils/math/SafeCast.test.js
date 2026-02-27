@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { toBigInt, MaxInt256, MinInt256, MaxUint256 } from 'ethers';
 import { range } from '../../helpers/iterate';
@@ -7,7 +7,7 @@ describe('SafeCast', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     return { mock: await ethers.deployContract('$SafeCast') };

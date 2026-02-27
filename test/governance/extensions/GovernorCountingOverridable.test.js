@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { parseEther } from 'ethers';
 import { VoteType } from '../../helpers/enums';
@@ -23,7 +23,7 @@ const signBallot = account => (contract, message) =>
   getDomain(contract).then(domain => account.signTypedData(domain, { OverrideBallot }, message));
 
 describe('GovernorCountingOverridable', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture, mine },

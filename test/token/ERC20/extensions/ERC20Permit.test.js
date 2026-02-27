@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 import { MaxUint256, Signature, verifyTypedData } from 'ethers';
 import { Permit, getDomain, domainSeparator } from '../../../helpers/eip712';
@@ -12,7 +12,7 @@ describe('ERC20Permit', function () {
     ethers,
     helpers: { time },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [holder, spender, owner, other] = await ethers.getSigners();

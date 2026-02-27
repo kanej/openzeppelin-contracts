@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { Typed, TypedDataEncoder, Wallet } from 'ethers';
 import { domainType, domainSeparator, hashTypedData } from '../../helpers/eip712';
@@ -8,7 +8,7 @@ describe('MessageHashUtils', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     return { mock: await ethers.deployContract('$MessageHashUtils') };

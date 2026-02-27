@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 import { shouldBehaveLikeERC721 } from '../ERC721.behavior';
 
@@ -8,7 +8,7 @@ const tokenId = 1n;
 const otherTokenId = 2n;
 
 describe('ERC721Wrapper', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

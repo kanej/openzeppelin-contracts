@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { parseEther, Typed } from 'ethers';
 import { zip } from '../../helpers/iterate';
@@ -13,7 +13,7 @@ const MODES = {
 const AMOUNTS = [parseEther('10000000'), 10n, 20n];
 
 describe('Votes', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     helpers: { time },

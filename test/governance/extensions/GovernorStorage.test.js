@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { id, parseEther, ZeroHash } from 'ethers';
 import { anyValue } from '@nomicfoundation/hardhat-ethers-chai-matchers/withArgs';
@@ -27,7 +27,7 @@ const value = parseEther('1');
 const delay = 3600n;
 
 describe('GovernorStorage', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

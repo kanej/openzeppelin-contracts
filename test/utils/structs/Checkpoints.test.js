@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { OPTS } from '../../../scripts/generate/templates/Checkpoints.opts';
 
@@ -6,7 +6,7 @@ describe('Checkpoints', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   for (const opt of OPTS) {
     describe(opt.historyTypeName, function () {

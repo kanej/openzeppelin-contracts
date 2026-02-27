@@ -1,11 +1,11 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from './helpers/connection.js';
 import { expect } from 'chai';
 
 describe('Environment sanity', function () {
   const {
     ethers,
     networkHelpers: { loadFixture, mine },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     return {};

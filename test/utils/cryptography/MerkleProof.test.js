@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { getBytes, id, keccak256, sha256, toUtf8Bytes, ZeroHash } from 'ethers';
 import { PANIC_CODES } from '@nomicfoundation/hardhat-ethers-chai-matchers/panic';
@@ -12,7 +12,7 @@ const defaultHash = (a, b) => keccak256(concatSorted(a, b));
 const customHash = (a, b) => sha256(concatSorted(a, b));
 
 describe('MerkleProof', function () {
-  const { ethers } = network.mocha.connectOnBefore();
+  const { ethers } = connectOnTestSuiteStart();
 
   for (const { title, contractName, nodeHash } of [
     { title: 'default hash', contractName: '$MerkleProof', nodeHash: defaultHash },

@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 import { shouldBehaveLikeERC2981 } from '../../common/ERC2981.behavior';
 
@@ -14,7 +14,7 @@ describe('ERC721Royalty', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [account1, account2, recipient] = await ethers.getSigners();

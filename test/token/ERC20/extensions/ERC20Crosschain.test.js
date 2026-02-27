@@ -1,10 +1,10 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 import { anyValue } from '@nomicfoundation/hardhat-ethers-chai-matchers/withArgs';
 import { shouldBehaveLikeBridgeERC20 } from '../../../crosschain/BridgeERC20.behavior';
 
 describe('ERC20Crosschain', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const { ethers, helpers, networkHelpers } = connection;
 
   async function fixture() {

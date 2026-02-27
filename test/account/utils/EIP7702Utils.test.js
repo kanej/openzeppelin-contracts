@@ -1,4 +1,5 @@
-import { network, config } from 'hardhat';
+import { config } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { Wallet } from 'ethers';
 
@@ -6,7 +7,7 @@ describe('EIP7702Utils', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   // [NOTE]
   //

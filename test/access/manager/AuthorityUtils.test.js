@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { MAX_UINT32, MAX_UINT64 } from '../../helpers/constants';
 
@@ -6,7 +6,7 @@ describe('AuthorityUtils', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [user, other] = await ethers.getSigners();

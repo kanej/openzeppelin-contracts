@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { id, parseEther, ZeroHash } from 'ethers';
 import { anyValue } from '@nomicfoundation/hardhat-ethers-chai-matchers/withArgs';
@@ -26,7 +26,7 @@ const votingPeriod = 16n;
 const value = parseEther('1');
 
 describe('GovernorTimelockControl', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     helpers: { time },

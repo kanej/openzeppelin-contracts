@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { MAX_UINT48 } from '../../helpers/constants';
 import { selector } from '../../helpers/methods';
@@ -33,7 +33,7 @@ import {
 } from './AccessManager.predicate';
 
 describe('AccessManager', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     helpers: { impersonate, time },

@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { id, parseEther, ZeroHash } from 'ethers';
 import { ProposalState, VoteType } from '../../helpers/enums';
@@ -26,7 +26,7 @@ const superQuorum = 40n;
 const value = parseEther('1');
 
 describe('GovernorSuperQuorum', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     helpers: { time },

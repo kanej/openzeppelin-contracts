@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { getDomain } from '../helpers/eip712';
 import { ERC4337Helper } from '../helpers/erc4337';
 import { PackedUserOperation } from '../helpers/eip712-types';
@@ -11,7 +11,7 @@ const webAuthnSigner = new NonNativeSigner(WebAuthnSigningKey.random());
 const p256Signer = new NonNativeSigner(P256SigningKey.random());
 
 describe('AccountWebAuthn', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

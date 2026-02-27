@@ -1,9 +1,9 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { MAX_UINT64 } from '../../helpers/constants';
 
 describe('Initializable', function () {
-  const { ethers } = network.mocha.connectOnBefore();
+  const { ethers } = connectOnTestSuiteStart();
 
   describe('basic testing without inheritance', function () {
     beforeEach('deploying', async function () {

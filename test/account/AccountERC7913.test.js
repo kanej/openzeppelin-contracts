@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { AbiCoder, Wallet } from 'ethers';
 import { getDomain } from '../helpers/eip712';
 import { ERC4337Helper } from '../helpers/erc4337';
@@ -15,7 +15,7 @@ const signerRSA = new NonNativeSigner(RSASHA256SigningKey.random());
 const signerWebAuthn = new NonNativeSigner(WebAuthnSigningKey.random());
 
 describe('AccountERC7913', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

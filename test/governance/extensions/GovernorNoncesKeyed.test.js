@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../helpers/connection.js';
 import { expect } from 'chai';
 import { parseEther } from 'ethers';
 import { getDomain, Ballot, ExtendedBallot } from '../../helpers/eip712';
@@ -21,7 +21,7 @@ const signExtendedBallot = account => (contract, message) =>
   getDomain(contract).then(domain => account.signTypedData(domain, { ExtendedBallot }, message));
 
 describe('GovernorNoncesKeyed', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     networkHelpers: { loadFixture },

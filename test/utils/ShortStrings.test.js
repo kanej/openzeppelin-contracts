@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { concat, encodeBytes32String, toBeArray, toUtf8String, zeroPadValue } from 'ethers';
 
@@ -15,7 +15,7 @@ describe('ShortStrings', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const mock = await ethers.deployContract('$ShortStrings');

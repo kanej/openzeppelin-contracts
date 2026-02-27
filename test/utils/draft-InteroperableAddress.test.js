@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { Typed, hexlify, ZeroAddress } from 'ethers';
 import { addressCoder, nameCoder } from 'interoperable-addresses';
@@ -10,7 +10,7 @@ describe('ERC7390', function () {
     ethers,
     helpers: { chain },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     return { mock: await ethers.deployContract('$InteroperableAddress') };

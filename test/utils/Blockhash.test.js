@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 
 const SYSTEM_ADDRESS = '0xfffffffffffffffffffffffffffffffffffffffe';
@@ -10,7 +10,7 @@ describe('Blockhash', function () {
     ethers,
     helpers: { impersonate, time },
     networkHelpers: { loadFixture, setCode },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     return {

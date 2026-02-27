@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 import { shouldSupportInterfaces } from '../../../utils/introspection/SupportsInterface.behavior';
 
@@ -6,7 +6,7 @@ describe('ERC6909ContentURI', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     return { token: await ethers.deployContract('$ERC6909ContentURI') };

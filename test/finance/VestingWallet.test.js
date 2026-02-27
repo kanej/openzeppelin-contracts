@@ -1,10 +1,10 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../helpers/connection.js';
 import { expect } from 'chai';
 import { min } from '../helpers/math';
 import { envSetup, shouldBehaveLikeVesting } from './VestingWallet.behavior';
 
 describe('VestingWallet', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = connectOnTestSuiteStart();
   const {
     ethers,
     helpers: { time },

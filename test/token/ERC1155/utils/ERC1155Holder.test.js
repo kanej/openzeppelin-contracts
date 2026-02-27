@@ -1,4 +1,4 @@
-import { network } from 'hardhat';
+import { connectOnTestSuiteStart } from '../../../helpers/connection.js';
 import { expect } from 'chai';
 import { shouldSupportInterfaces } from '../../../utils/introspection/SupportsInterface.behavior';
 
@@ -10,7 +10,7 @@ describe('ERC1155Holder', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = connectOnTestSuiteStart();
 
   async function fixture() {
     const [owner] = await ethers.getSigners();
