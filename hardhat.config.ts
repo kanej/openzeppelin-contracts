@@ -74,6 +74,9 @@ export default defineConfig({
         readDirectory: ['node_modules/hardhat-predeploy/bin'],
       },
     },
+    mocha: {
+      parallel: true,
+    },
   },
   warnings: {
     'npm/**/*': 'off',
