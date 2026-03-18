@@ -12,7 +12,7 @@ describe('ERC4337Utils', function () {
     ethers,
     helpers: { time },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [authorizer, sender, factory, paymaster] = await ethers.getSigners();

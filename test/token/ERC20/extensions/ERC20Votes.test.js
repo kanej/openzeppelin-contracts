@@ -16,7 +16,7 @@ const version = '1';
 const supply = parseEther('10000000');
 
 describe('ERC20Votes', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     helpers: { time },

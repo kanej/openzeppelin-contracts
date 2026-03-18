@@ -12,7 +12,7 @@ describe('ERC7786Recipient', function () {
     ethers,
     helpers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [sender, notAGateway] = await ethers.getSigners();

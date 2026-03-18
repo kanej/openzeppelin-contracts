@@ -10,7 +10,7 @@ const symbol = 'MTKN';
 const initialSupply = 100n;
 
 describe('ERC20', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

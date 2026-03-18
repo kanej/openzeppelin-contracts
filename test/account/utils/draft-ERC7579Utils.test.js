@@ -18,7 +18,7 @@ describe('ERC7579Utils', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   const fixture = async () => {
     const [sender] = await ethers.getSigners();

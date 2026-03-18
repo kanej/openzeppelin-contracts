@@ -11,7 +11,7 @@ describe('ERC4626', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [holder, recipient, spender, other, ...accounts] = await ethers.getSigners();

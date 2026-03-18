@@ -6,7 +6,7 @@ describe('ERC6909ContentURI', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     return { token: await ethers.deployContract('$ERC6909ContentURI') };

@@ -8,7 +8,7 @@ describe('ERC2771Forwarder', function () {
     ethers,
     helpers: { time },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [sender, refundReceiver, another, ...accounts] = await ethers.getSigners();

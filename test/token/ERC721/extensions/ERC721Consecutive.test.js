@@ -10,7 +10,7 @@ describe('ERC721Consecutive', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   for (const offset of [0n, 1n, 42n]) {
     describe(`with offset ${offset}`, function () {

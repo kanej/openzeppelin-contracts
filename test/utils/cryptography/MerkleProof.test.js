@@ -12,7 +12,7 @@ const defaultHash = (a, b) => keccak256(concatSorted(a, b));
 const customHash = (a, b) => sha256(concatSorted(a, b));
 
 describe('MerkleProof', function () {
-  const { ethers } = network.mocha.connectOnBefore();
+  const { ethers } = network.mocha.connectToSingleton();
 
   for (const { title, contractName, nodeHash } of [
     { title: 'default hash', contractName: '$MerkleProof', nodeHash: defaultHash },

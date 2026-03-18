@@ -13,7 +13,7 @@ const MODES = {
 const AMOUNTS = [parseEther('10000000'), 10n, 20n];
 
 describe('Votes', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     helpers: { time },

@@ -9,7 +9,7 @@ const name = 'Non Fungible Token';
 const symbol = 'NFT';
 
 describe('ERC721', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

@@ -8,7 +8,7 @@ describe('Create2', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   const salt = 'salt message';
   const saltHex = id(salt);

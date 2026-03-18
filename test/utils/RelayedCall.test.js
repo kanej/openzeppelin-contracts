@@ -7,7 +7,7 @@ describe('RelayedCall', function () {
     ethers,
     helpers: { impersonate },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [admin, receiver, other] = await ethers.getSigners();

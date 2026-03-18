@@ -3,7 +3,7 @@ import { shouldBehaveLikeProxy } from '../Proxy.behaviour';
 import { shouldBehaveLikeTransparentUpgradeableProxy } from './TransparentUpgradeableProxy.behaviour';
 
 describe('TransparentUpgradeableProxy', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

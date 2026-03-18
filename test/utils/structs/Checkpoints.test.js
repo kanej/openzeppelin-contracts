@@ -6,7 +6,7 @@ describe('Checkpoints', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   for (const opt of OPTS) {
     describe(opt.historyTypeName, function () {

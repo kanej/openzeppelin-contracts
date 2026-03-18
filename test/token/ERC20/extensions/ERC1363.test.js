@@ -10,7 +10,7 @@ const value = 1000n;
 const data = '0x123456';
 
 describe('ERC1363', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

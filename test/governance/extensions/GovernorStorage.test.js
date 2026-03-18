@@ -27,7 +27,7 @@ const value = parseEther('1');
 const delay = 3600n;
 
 describe('GovernorStorage', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

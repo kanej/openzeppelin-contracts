@@ -15,7 +15,7 @@ const signerRSA = new NonNativeSigner(RSASHA256SigningKey.random());
 const signerWebAuthn = new NonNativeSigner(WebAuthnSigningKey.random());
 
 describe('AccountERC7913', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

@@ -11,7 +11,7 @@ describe('SafeERC20', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [hasNoCode, owner, receiver, spender, other] = await ethers.getSigners();

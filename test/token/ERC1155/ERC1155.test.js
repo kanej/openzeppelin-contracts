@@ -8,7 +8,7 @@ import { shouldBehaveLikeERC1155 } from './ERC1155.behavior';
 const initialURI = 'https://token-cdn-domain/{id}.json';
 
 describe('ERC1155', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

@@ -8,7 +8,7 @@ import { shouldBehaveLikeAccountERC7579 } from './AccountERC7579.behavior';
 import { shouldBehaveLikeERC1271 } from '../../utils/cryptography/ERC1271.behavior';
 
 describe('AccountERC7579', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

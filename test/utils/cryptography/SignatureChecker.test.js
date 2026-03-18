@@ -17,7 +17,7 @@ describe('SignatureChecker (ERC1271)', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [signer, extraSigner, other] = await ethers.getSigners();

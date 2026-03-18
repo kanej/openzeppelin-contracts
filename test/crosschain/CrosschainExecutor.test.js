@@ -16,7 +16,7 @@ describe('CrosschainRemoteController & CrosschainRemoteExecutor', function () {
     ethers,
     helpers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [admin, other] = await ethers.getSigners();

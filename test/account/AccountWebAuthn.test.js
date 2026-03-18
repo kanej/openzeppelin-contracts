@@ -11,7 +11,7 @@ const webAuthnSigner = new NonNativeSigner(WebAuthnSigningKey.random());
 const p256Signer = new NonNativeSigner(P256SigningKey.random());
 
 describe('AccountWebAuthn', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

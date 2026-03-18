@@ -4,7 +4,7 @@ import { anyValue } from '@nomicfoundation/hardhat-ethers-chai-matchers/withArgs
 import { shouldBehaveLikeBridgeERC20 } from '../../../crosschain/BridgeERC20.behavior';
 
 describe('ERC20Crosschain', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const { ethers, helpers, networkHelpers } = connection;
 
   async function fixture() {

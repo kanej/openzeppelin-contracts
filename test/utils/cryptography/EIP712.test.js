@@ -12,7 +12,7 @@ describe('EIP712', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   const fixture = async () => {
     const [from, to] = await ethers.getSigners();

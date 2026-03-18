@@ -11,7 +11,7 @@ describe('ERC1155URIStorage', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
   describe('with base uri set', function () {
     async function fixture() {
       const [holder] = await ethers.getSigners();

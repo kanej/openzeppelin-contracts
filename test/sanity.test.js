@@ -5,7 +5,7 @@ describe('Environment sanity', function () {
   const {
     ethers,
     networkHelpers: { loadFixture, mine },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     return {};

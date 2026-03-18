@@ -15,7 +15,7 @@ describe('ERC1155Utils', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   const deployReceiver = (
     revertType,

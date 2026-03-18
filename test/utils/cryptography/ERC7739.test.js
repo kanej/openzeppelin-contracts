@@ -4,7 +4,7 @@ import { shouldBehaveLikeERC1271 } from './ERC1271.behavior';
 import { NonNativeSigner, P256SigningKey, RSASHA256SigningKey } from '../../helpers/signers';
 
 describe('ERC7739', function () {
-  const { ethers } = network.mocha.connectOnBefore();
+  const { ethers } = network.mocha.connectToSingleton();
 
   describe('for an ECDSA signer', function () {
     before(async function () {

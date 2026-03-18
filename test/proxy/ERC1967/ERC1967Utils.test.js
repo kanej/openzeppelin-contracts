@@ -7,7 +7,7 @@ describe('ERC1967Utils', function () {
     ethers,
     helpers: { storage },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [, admin, anotherAccount] = await ethers.getSigners();

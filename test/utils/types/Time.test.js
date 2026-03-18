@@ -39,7 +39,7 @@ describe('Time', function () {
     ethers,
     helpers: { time },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     return { mock: await ethers.deployContract('$Time') };

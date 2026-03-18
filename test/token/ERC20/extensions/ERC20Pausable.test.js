@@ -9,7 +9,7 @@ describe('ERC20Pausable', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [holder, recipient, approved] = await ethers.getSigners();

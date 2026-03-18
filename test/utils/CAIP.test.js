@@ -5,7 +5,7 @@ import { CHAINS, getLocalChain } from '../helpers/chains';
 import { generators } from '../helpers/random';
 
 describe('CAIP utilities', function () {
-  const { ethers } = network.mocha.connectOnBefore();
+  const { ethers } = network.mocha.connectToSingleton();
 
   before(async function () {
     this.local = await getLocalChain(ethers.provider);

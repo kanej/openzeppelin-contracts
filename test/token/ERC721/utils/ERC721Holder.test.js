@@ -6,7 +6,7 @@ const symbol = 'NFT';
 const tokenId = 1n;
 
 describe('ERC721Holder', function () {
-  const { ethers } = network.mocha.connectOnBefore();
+  const { ethers } = network.mocha.connectToSingleton();
 
   it('receives an ERC721 token', async function () {
     const [owner] = await ethers.getSigners();

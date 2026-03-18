@@ -5,7 +5,7 @@ describe('UpgradeableBeacon', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [admin, other] = await ethers.getSigners();

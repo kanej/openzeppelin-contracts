@@ -5,7 +5,7 @@ describe('Calldata utilities', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     return { mock: await ethers.deployContract('$Calldata') };

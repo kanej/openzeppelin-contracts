@@ -21,7 +21,7 @@ const signExtendedBallot = account => (contract, message) =>
   getDomain(contract).then(domain => account.signTypedData(domain, { ExtendedBallot }, message));
 
 describe('GovernorNoncesKeyed', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

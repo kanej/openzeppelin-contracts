@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { shouldBehaveLikeBridgeERC20 } from './BridgeERC20.behavior';
 
 describe('CrosschainBridgeERC20', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     helpers,

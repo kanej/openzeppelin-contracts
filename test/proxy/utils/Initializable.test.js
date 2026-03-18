@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { MAX_UINT64 } from '../../helpers/constants';
 
 describe('Initializable', function () {
-  const { ethers } = network.mocha.connectOnBefore();
+  const { ethers } = network.mocha.connectToSingleton();
 
   describe('basic testing without inheritance', function () {
     beforeEach('deploying', async function () {

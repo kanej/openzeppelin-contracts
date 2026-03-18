@@ -14,7 +14,7 @@ describe('ERC721Royalty', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [account1, account2, recipient] = await ethers.getSigners();

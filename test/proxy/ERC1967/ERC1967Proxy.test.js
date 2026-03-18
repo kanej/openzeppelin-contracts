@@ -2,7 +2,7 @@ import { network } from 'hardhat';
 import { shouldBehaveLikeProxy } from '../Proxy.behaviour';
 
 describe('ERC1967Proxy', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

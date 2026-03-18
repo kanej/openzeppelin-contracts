@@ -8,7 +8,7 @@ const tokenId = 1n;
 const otherTokenId = 2n;
 
 describe('ERC721Wrapper', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

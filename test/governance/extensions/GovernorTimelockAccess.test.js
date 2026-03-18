@@ -31,7 +31,7 @@ const votingPeriod = 16n;
 const value = parseEther('1');
 
 describe('GovernorTimelockAccess', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     helpers: { time },

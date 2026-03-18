@@ -10,7 +10,7 @@ describe('Blockhash', function () {
     ethers,
     helpers: { impersonate, time },
     networkHelpers: { loadFixture, setCode },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     return {

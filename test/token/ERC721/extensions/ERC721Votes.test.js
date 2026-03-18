@@ -14,7 +14,7 @@ const version = '1';
 const tokens = [parseEther('10000000'), 10n, 20n, 30n];
 
 describe('ERC721Votes', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     helpers: { time },

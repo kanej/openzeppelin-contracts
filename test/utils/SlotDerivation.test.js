@@ -8,7 +8,7 @@ describe('SlotDerivation', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [account] = await ethers.getSigners();

@@ -12,7 +12,7 @@ describe('ERC20Permit', function () {
     ethers,
     helpers: { time },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [holder, spender, owner, other] = await ethers.getSigners();

@@ -8,7 +8,7 @@ describe('ERC1155Burnable', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [holder, operator, other] = await ethers.getSigners();

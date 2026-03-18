@@ -11,7 +11,7 @@ describe('ERC721Utils', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   const deployReceiver = (revertType, returnValue = RECEIVER_MAGIC_VALUE) =>
     ethers.deployContract('$ERC721ReceiverMock', [returnValue, revertType]);

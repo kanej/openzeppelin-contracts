@@ -21,7 +21,7 @@ const quorum = parseEther('1');
 const value = parseEther('1');
 
 describe('GovernorPreventLateQuorum', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     helpers: { time },

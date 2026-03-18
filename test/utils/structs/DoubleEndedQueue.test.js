@@ -7,7 +7,7 @@ describe('DoubleEndedQueue', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   const coder = AbiCoder.defaultAbiCoder();
 

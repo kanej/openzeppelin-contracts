@@ -10,7 +10,7 @@ describe('ERC7390', function () {
     ethers,
     helpers: { chain },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     return { mock: await ethers.deployContract('$InteroperableAddress') };

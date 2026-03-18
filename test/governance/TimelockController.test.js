@@ -16,7 +16,7 @@ const CANCELLER_ROLE = id('CANCELLER_ROLE');
 const getAddress = obj => obj.address ?? obj.target ?? obj;
 
 describe('TimelockController', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     helpers: { time },

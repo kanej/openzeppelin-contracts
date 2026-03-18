@@ -6,7 +6,7 @@ import {
 } from '../AccessControl.behavior';
 
 describe('AccessControlDefaultAdminRules', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     helpers,

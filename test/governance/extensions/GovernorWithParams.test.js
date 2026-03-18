@@ -25,7 +25,7 @@ const params = {
 };
 
 describe('GovernorWithParams', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

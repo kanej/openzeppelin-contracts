@@ -4,7 +4,7 @@ import { id } from 'ethers';
 import { ImplementationLabel } from '../../helpers/storage';
 
 describe('UUPSUpgradeable', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     helpers: { storage },

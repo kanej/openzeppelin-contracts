@@ -7,7 +7,7 @@ describe('ProxyAdmin', function () {
     ethers,
     helpers: { storage },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [admin, other] = await ethers.getSigners();

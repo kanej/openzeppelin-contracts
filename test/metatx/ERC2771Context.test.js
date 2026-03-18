@@ -9,7 +9,7 @@ describe('ERC2771Context', function () {
     ethers,
     helpers: { impersonate },
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [sender, other] = await ethers.getSigners();

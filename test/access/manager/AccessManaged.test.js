@@ -6,7 +6,7 @@ describe('AccessManaged', function () {
     ethers,
     helpers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [admin, roleMember, other] = await ethers.getSigners();

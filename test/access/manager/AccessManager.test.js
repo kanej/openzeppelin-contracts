@@ -33,7 +33,7 @@ import {
 } from './AccessManager.predicate';
 
 describe('AccessManager', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     helpers: { impersonate, time },

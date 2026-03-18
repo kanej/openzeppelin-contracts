@@ -6,7 +6,7 @@ describe('EIP7702Utils', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   // [NOTE]
   //

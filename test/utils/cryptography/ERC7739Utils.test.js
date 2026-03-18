@@ -10,7 +10,7 @@ describe('ERC7739Utils', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   const fixture = async () => {
     const mock = await ethers.deployContract('$ERC7739Utils');

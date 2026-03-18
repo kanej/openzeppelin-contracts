@@ -23,7 +23,7 @@ const signBallot = account => (contract, message) =>
   getDomain(contract).then(domain => account.signTypedData(domain, { OverrideBallot }, message));
 
 describe('GovernorCountingOverridable', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture, mine },

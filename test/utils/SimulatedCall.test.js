@@ -8,7 +8,7 @@ describe('SimulateCall', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [receiver, other] = await ethers.getSigners();

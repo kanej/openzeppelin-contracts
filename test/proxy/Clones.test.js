@@ -5,7 +5,7 @@ import { generators } from '../helpers/random';
 import { shouldBehaveLikeClone } from './Clones.behaviour';
 
 describe('Clones', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

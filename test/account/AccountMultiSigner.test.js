@@ -19,7 +19,7 @@ const signerP256 = new NonNativeSigner(P256SigningKey.random());
 const signerRSA = new NonNativeSigner(RSASHA256SigningKey.random());
 
 describe('AccountMultiSigner', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     networkHelpers: { loadFixture },

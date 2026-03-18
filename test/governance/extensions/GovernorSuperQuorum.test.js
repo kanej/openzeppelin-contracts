@@ -26,7 +26,7 @@ const superQuorum = 40n;
 const value = parseEther('1');
 
 describe('GovernorSuperQuorum', function () {
-  const connection = network.mocha.connectOnBefore();
+  const connection = network.mocha.connectToSingleton();
   const {
     ethers,
     helpers: { time },

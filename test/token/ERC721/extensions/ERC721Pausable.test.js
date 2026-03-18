@@ -12,7 +12,7 @@ describe('ERC721Pausable', function () {
   const {
     ethers,
     networkHelpers: { loadFixture },
-  } = network.mocha.connectOnBefore();
+  } = network.mocha.connectToSingleton();
 
   async function fixture() {
     const [owner, receiver, operator] = await ethers.getSigners();
